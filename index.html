@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trình soạn EPUB</title>
+<style>
+:root{--bg:#e9edf0;--panel:#f7f9fa;--ink:#1c2733;--mute:#5d6b78;--line:#cdd5db;--acc:#0e6e6a;--acc-ink:#fff;--paper:#fff;--danger:#b3261e}
+@media (prefers-color-scheme:dark){:root{--bg:#12181e;--panel:#1b242c;--ink:#e6ecf0;--mute:#93a1ad;--line:#2c3945;--acc:#3fb6ae;--acc-ink:#07201e;--paper:#fbfcfc;--danger:#ff8a80}}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font:15px/1.4 "Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--ink);display:flex;flex-direction:column}
+button,input,textarea,select{font:inherit;color:inherit}
+button{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 11px;cursor:pointer}
+button:hover{border-color:var(--acc)}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,[contenteditable]:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+.pri{background:var(--acc);color:var(--acc-ink);border-color:var(--acc);font-weight:600}
+header{display:flex;gap:8px;align-items:center;padding:8px 12px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
+header h1{font-size:16px;margin:0 auto 0 0;font-weight:700}
+main{flex:1;display:flex;min-height:0}
+aside{width:250px;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;flex-shrink:0}
+aside h2{font-size:14px;margin:0;padding:10px 12px;border-bottom:1px solid var(--line)}
+#list{flex:1;overflow:auto;margin:0;padding:6px;list-style:none}
+#list li{display:flex;align-items:center;gap:2px;padding:4px 6px;border-radius:6px}
+#list li.on{background:var(--bg);box-shadow:inset 3px 0 var(--acc)}
+#list .t{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;padding:4px}
+#list li button{border:0;background:none;padding:2px 5px;color:var(--mute)}
+#list li button:hover{color:var(--acc)}
+#list li .del:hover{color:var(--danger)}
+aside>button{margin:8px}
+section{flex:1;display:flex;flex-direction:column;min-width:0}
+.tabs{display:flex;gap:4px;padding:6px 10px 0;background:var(--panel)}
+.tabs button{border-radius:6px 6px 0 0;border-bottom:0}
+.tabs button.on{background:var(--bg);border-color:var(--acc);font-weight:600}
+#bar{display:flex;flex-wrap:wrap;gap:4px;padding:6px 10px;background:var(--panel);border-bottom:1px solid var(--line);align-items:center}
+#bar button{min-width:34px;padding:4px 8px}
+#bar select{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:4px 6px}
+#bar .sep{width:1px;align-self:stretch;background:var(--line);margin:0 4px}
+.wrap{flex:1;overflow:auto;padding:18px}
+#ed{max-width:760px;margin:0 auto;min-height:100%;background:var(--paper);color:#1a1a1a;padding:36px 44px;border-radius:4px;box-shadow:0 1px 3px #0003;font:18px/1.75 Georgia,"Times New Roman",serif}
+#ed h1,#ed h2,#ed h3{line-height:1.25}
+#ed img{max-width:100%}
+#ed table{border-collapse:collapse}#ed td,#ed th{border:1px solid #999;padding:4px 8px}
+#code{display:none;flex:1;margin:18px;padding:12px;font:13px/1.5 Consolas,monospace;background:var(--paper);color:#1a1a1a;border:1px solid var(--line);border-radius:4px;resize:none}
+dialog{border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);padding:0;width:min(520px,94vw)}
+dialog::backdrop{background:#0008}
+dialog form{padding:18px;display:grid;gap:10px}
+dialog h2{margin:0;font-size:17px}
+label{display:grid;gap:3px;color:var(--mute);font-size:13px}
+label input,label textarea{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 9px;color:var(--ink)}
+.row{display:flex;gap:8px;justify-content:flex-end;align-items:center}
+#cov{max-height:140px;max-width:93px;border:1px solid var(--line);display:none}
+#msg{color:var(--mute);font-size:13px;margin-right:auto}
+@media (max-width:760px){main{flex-direction:column}aside{width:auto;max-height:34%;border-right:0;border-bottom:1px solid var(--line)}#ed{padding:20px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Trình soạn EPUB</h1>
+  <span id="msg"></span>
+  <button id="bNew">Sách mới</button>
+  <button id="bOpen">Mở bản nháp</button>
+  <button id="bSave">Lưu bản nháp</button>
+  <button id="bMeta">Thông tin sách</button>
+  <button id="bExp" class="pri">Xuất EPUB</button>
+</header>
+<main>
+  <aside>
+    <h2>Chương</h2>
+    <ul id="list"></ul>
+    <button id="bAdd">+ Chương mới</button>
+  </aside>
+  <section>
+    <div class="tabs"><button id="tV" class="on">Trực quan</button><button id="tC">Mã HTML</button></div>
+    <div id="bar">
+      <select id="sFont" title="Phông chữ"><option value="">Phông chữ</option><option>Georgia</option><option>Times New Roman</option><option>Palatino Linotype</option><option>Arial</option><option>Verdana</option><option>Tahoma</option><option>Trebuchet MS</option><option>Segoe UI</option><option>Courier New</option></select>
+      <select id="sSize" title="Cỡ chữ"><option value="">Cỡ chữ</option><option>12</option><option>14</option><option>16</option><option>18</option><option>20</option><option>24</option><option>28</option><option>32</option><option>40</option></select>
+      <label style="display:flex;flex-direction:row;align-items:center;gap:4px" title="Màu chữ">Màu <input type="color" id="cText" value="#000000" style="padding:0;width:34px;height:28px;border:1px solid var(--line);background:none"></label><span class="sep"></span>
+      <button data-b="h1">H1</button><button data-b="h2">H2</button><button data-b="h3">H3</button><button data-b="p">¶</button><span class="sep"></span>
+      <button data-c="bold"><b>B</b></button><button data-c="italic"><i>I</i></button><button data-c="underline"><u>U</u></button><button data-c="strikeThrough"><s>S</s></button><span class="sep"></span>
+      <button data-c="insertUnorderedList">• Danh sách</button><button data-c="insertOrderedList">1. Danh sách</button><span class="sep"></span>
+      <button data-c="justifyLeft" title="Căn trái" aria-label="Căn trái"><svg width="18" height="16" viewBox="0 0 18 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M1 3H17"/><path d="M1 7H11"/><path d="M1 11H17"/><path d="M1 15H9"/></svg></button><button data-c="justifyCenter" title="Căn giữa" aria-label="Căn giữa"><svg width="18" height="16" viewBox="0 0 18 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M1 3H17"/><path d="M4 7H14"/><path d="M1 11H17"/><path d="M5 15H13"/></svg></button><button data-c="justifyRight" title="Căn phải" aria-label="Căn phải"><svg width="18" height="16" viewBox="0 0 18 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M1 3H17"/><path d="M7 7H17"/><path d="M1 11H17"/><path d="M9 15H17"/></svg></button><button data-c="justifyFull" title="Căn đều hai bên" aria-label="Căn đều hai bên"><svg width="18" height="16" viewBox="0 0 18 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M1 3H17"/><path d="M1 7H17"/><path d="M1 11H17"/><path d="M1 15H17"/></svg></button><span class="sep"></span>
+      <button id="bLink">Liên kết</button><button id="bChap">Liên kết chương</button><button id="bImg">Ảnh</button><button id="bTbl">Bảng</button>
+    </div>
+    <div class="wrap" id="wrap"><div id="ed" contenteditable="true" spellcheck="false"></div></div>
+    <textarea id="code" spellcheck="false"></textarea>
+  </section>
+</main>
+
+<dialog id="dMeta">
+  <form method="dialog" id="fMeta">
+    <h2>Thông tin sách</h2>
+    <label>Tiêu đề<input id="mTitle"></label>
+    <label>Tác giả<input id="mAuthor"></label>
+    <label>Mô tả<textarea id="mDesc" rows="3"></textarea></label>
+    <label>Ngôn ngữ<input id="mLang" placeholder="vi"></label>
+    <label>Nhà xuất bản<input id="mPub"></label>
+    <label style="display:flex;gap:8px;align-items:center;flex-direction:row"><input type="checkbox" id="mToc">Chèn trang Mục lục vào đầu sách</label>
+    <label>Bìa (tỷ lệ 2:3)<input type="file" id="mCover" accept="image/png,image/jpeg"></label>
+    <img id="cov" alt="Bìa sách">
+    <div class="row"><button type="button" id="mRm">Bỏ bìa</button><button class="pri" value="ok">Xong</button></div>
+  </form>
+</dialog>
+<dialog id="dChap">
+  <form method="dialog">
+    <h2>Liên kết tới chương</h2>
+    <div id="chapList" style="display:grid;gap:6px;max-height:50vh;overflow:auto"></div>
+    <div class="row"><button value="x">Đóng</button></div>
+  </form>
+</dialog>
+<input type="file" id="fImg" accept="image/png,image/jpeg,image/gif,image/webp" hidden>
+<input type="file" id="fOpen" accept=".json,application/json" hidden>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+const KEY='epub-editor-draft';
+const blank=()=>({meta:{title:'',author:'',desc:'',lang:'vi',pub:'',cover:null},chapters:[{id:'c1',title:'Chương 1',html:'<h1>Chương 1</h1><p><br></p>'}],cur:0});
+let S;
+try{S=JSON.parse(localStorage.getItem(KEY))||blank()}catch(e){S=blank()}
+const ed=$('#ed'),code=$('#code');
+const uid=()=>'c'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+function ensureIds(){S.chapters.forEach(c=>{if(!c.id)c.id=uid()})}
+ensureIds();
+let timer;
+function msg(t){$('#msg').textContent=t;clearTimeout(msg.t);msg.t=setTimeout(()=>$('#msg').textContent='',3500)}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){msg('Bộ nhớ trình duyệt đầy, hãy bấm "Lưu bản nháp".')}}
+function later(){clearTimeout(timer);timer=setTimeout(persist,600)}
+function syncOut(){S.chapters[S.cur].html=$('#code').style.display==='block'?code.value:ed.innerHTML}
+function show(){ed.innerHTML=S.chapters[S.cur].html;code.value=S.chapters[S.cur].html;renderList()}
+function renderList(){
+  const ul=$('#list');ul.innerHTML='';
+  S.chapters.forEach((c,i)=>{
+    const li=document.createElement('li');if(i===S.cur)li.className='on';
+    li.innerHTML='<span class="t"></span><button title="Lên">↑</button><button title="Xuống">↓</button><button title="Đổi tên">✎</button><button class="del" title="Xóa">✕</button>';
+    li.querySelector('.t').textContent=c.title;
+    const b=li.querySelectorAll('button');
+    li.querySelector('.t').onclick=()=>{syncOut();S.cur=i;show()};
+    b[0].onclick=()=>move(i,-1);b[1].onclick=()=>move(i,1);
+    b[2].onclick=()=>{const n=prompt('Tên chương',c.title);if(n){c.title=n;renderList();persist()}};
+    b[3].onclick=()=>{if(S.chapters.length<2)return msg('Sách cần ít nhất một chương.');if(!confirm('Xóa "'+c.title+'"?'))return;syncOut();S.chapters.splice(i,1);S.cur=Math.min(S.cur,S.chapters.length-1);show();persist()};
+    ul.appendChild(li);
+  });
+}
+function move(i,d){const j=i+d;if(j<0||j>=S.chapters.length)return;syncOut();const[c]=S.chapters.splice(i,1);S.chapters.splice(j,0,c);S.cur=j;show();persist()}
+ed.addEventListener('input',()=>{S.chapters[S.cur].html=ed.innerHTML;later()});
+code.addEventListener('input',()=>{S.chapters[S.cur].html=code.value;later()});
+$('#tV').onclick=()=>{syncOut();ed.innerHTML=S.chapters[S.cur].html;code.style.display='none';$('#wrap').style.display='';$('#bar').style.display='';$('#tV').className='on';$('#tC').className=''};
+$('#tC').onclick=()=>{syncOut();code.value=S.chapters[S.cur].html;code.style.display='block';$('#wrap').style.display='none';$('#bar').style.display='none';$('#tC').className='on';$('#tV').className=''};
+$('#bAdd').onclick=()=>{syncOut();const n=S.chapters.length+1;S.chapters.push({id:uid(),title:'Chương '+n,html:'<h1>Chương '+n+'</h1><p><br></p>'});S.cur=n-1;show();persist()};
+document.querySelectorAll('[data-c]').forEach(b=>{b.onmousedown=e=>e.preventDefault();b.onclick=()=>{ed.focus();document.execCommand(b.dataset.c);S.chapters[S.cur].html=ed.innerHTML;later()}});
+document.querySelectorAll('[data-b]').forEach(b=>{b.onmousedown=e=>e.preventDefault();b.onclick=()=>{ed.focus();document.execCommand('formatBlock',false,b.dataset.b);S.chapters[S.cur].html=ed.innerHTML;later()}});
+let saved;
+$('#bChap').onmousedown=$('#bLink').onmousedown=$('#bImg').onmousedown=$('#bTbl').onmousedown=()=>{const s=getSelection();saved=s.rangeCount?s.getRangeAt(0).cloneRange():null};
+document.addEventListener('selectionchange',()=>{const t=getSelection();if(t.rangeCount&&ed.contains(t.anchorNode))saved=t.getRangeAt(0).cloneRange()});
+function styled(fn){restore();document.execCommand('styleWithCSS',false,true);fn();S.chapters[S.cur].html=ed.innerHTML;later()}
+$('#sFont').onchange=e=>{const v=e.target.value;e.target.selectedIndex=0;if(v)styled(()=>document.execCommand('fontName',false,v))};
+$('#sSize').onchange=e=>{const v=e.target.value;e.target.selectedIndex=0;if(!v)return;styled(()=>{document.execCommand('fontSize',false,'7');ed.querySelectorAll('span').forEach(x=>{if(x.style.fontSize==='xxx-large')x.style.fontSize=v+'px'});ed.querySelectorAll('font[size="7"]').forEach(x=>{x.removeAttribute('size');x.style.fontSize=v+'px'})})};
+$('#cText').oninput=e=>styled(()=>document.execCommand('foreColor',false,e.target.value));
+function restore(){ed.focus();if(saved){const s=getSelection();s.removeAllRanges();s.addRange(saved)}}
+$('#bLink').onclick=()=>{const u=prompt('Địa chỉ liên kết (https://...)');if(u){restore();document.execCommand('createLink',false,u);S.chapters[S.cur].html=ed.innerHTML;later()}};
+$('#bTbl').onclick=()=>{const v=prompt('Hàng x Cột (VD: 3x4)','3x4');const m=v&&/^(\d+)\s*x\s*(\d+)$/i.exec(v);if(!m)return;let h='<table>';for(let r=0;r<+m[1];r++){h+='<tr>';for(let c=0;c<+m[2];c++)h+='<td><br></td>';h+='</tr>'}restore();document.execCommand('insertHTML',false,h+'</table><p><br></p>');S.chapters[S.cur].html=ed.innerHTML;later()};
+const readURL=f=>new Promise(r=>{const x=new FileReader();x.onload=()=>r(x.result);x.readAsDataURL(f)});
+$('#bImg').onclick=()=>$('#fImg').click();
+$('#fImg').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const u=await readURL(f);restore();document.execCommand('insertImage',false,u);S.chapters[S.cur].html=ed.innerHTML;later()};
+
+// Liên kết nội bộ tới chương
+$('#bChap').onclick=()=>{
+  const box=$('#chapList');box.innerHTML='';
+  S.chapters.forEach((c,i)=>{
+    const b=document.createElement('button');b.type='button';b.style.textAlign='left';b.textContent=(i+1)+'. '+c.title;
+    b.onclick=()=>{
+      $('#dChap').close();restore();
+      const href='#chap-'+c.id,sel=getSelection();
+      if(sel.rangeCount&&!sel.isCollapsed)document.execCommand('createLink',false,href);
+      else document.execCommand('insertHTML',false,'<a href="'+href+'">'+esc(c.title)+'</a>&nbsp;');
+      S.chapters[S.cur].html=ed.innerHTML;later();
+    };
+    box.appendChild(b);
+  });
+  $('#dChap').showModal();
+};
+
+// Thông tin sách
+function metaOut(){const m=S.meta;m.title=$('#mTitle').value;m.author=$('#mAuthor').value;m.desc=$('#mDesc').value;m.lang=$('#mLang').value||'vi';m.pub=$('#mPub').value;m.tocPage=$('#mToc').checked;persist()}
+function metaIn(){const m=S.meta;$('#mTitle').value=m.title;$('#mAuthor').value=m.author;$('#mDesc').value=m.desc;$('#mLang').value=m.lang;$('#mPub').value=m.pub;$('#mToc').checked=!!m.tocPage;const c=$('#cov');c.style.display=m.cover?'block':'none';if(m.cover)c.src=m.cover}
+$('#bMeta').onclick=()=>{metaIn();$('#dMeta').showModal()};
+$('#dMeta').addEventListener('close',metaOut);
+$('#mCover').onchange=async e=>{const f=e.target.files[0];if(f){S.meta.cover=await readURL(f);metaIn()}};
+$('#mRm').onclick=()=>{S.meta.cover=null;$('#mCover').value='';metaIn()};
+
+// Sách mới / bản nháp
+$('#bNew').onclick=()=>{if(!confirm('Tạo sách mới? Nội dung hiện tại sẽ bị xóa nếu chưa lưu bản nháp.'))return;S=blank();show();persist()};
+$('#bSave').onclick=()=>{syncOut();persist();dl(new Blob([JSON.stringify(S)],{type:'application/json'}),slug()+'.draft.json')};
+$('#bOpen').onclick=()=>$('#fOpen').click();
+$('#fOpen').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{const d=JSON.parse(await f.text());if(!d.chapters||!d.meta)throw 0;S=d;S.cur=0;ensureIds();show();persist();msg('Đã mở bản nháp.')}catch(x){alert('Tệp này không phải bản nháp của trình soạn.')}};
+function slug(){return (S.meta.title||'sach').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D').replace(/[^\w]+/g,'-').replace(/^-|-$/g,'')||'sach'}
+function dl(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}
+
+// Xuất EPUB
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const EXT={'image/png':'png','image/jpeg':'jpg','image/gif':'gif','image/webp':'webp'};
+$('#bExp').onclick=async()=>{
+  if(typeof JSZip==='undefined')return alert('Chưa tải được thư viện JSZip. Hãy kết nối mạng rồi mở lại trang.');
+  syncOut();persist();
+  const m=S.meta,title=m.title||'Chưa đặt tên',lang=m.lang||'vi',id='urn:uuid:'+crypto.randomUUID();
+  const zip=new JSZip(),imgs=[];let n=0;
+  zip.file('mimetype','application/epub+zip',{compression:'STORE'});
+  zip.file('META-INF/container.xml','<?xml version="1.0"?><container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container"><rootfiles><rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/></rootfiles></container>');
+  zip.file('OEBPS/style.css','body{font-family:serif;line-height:1.6}h1,h2,h3{line-height:1.25}img{max-width:100%}table{border-collapse:collapse}td,th{border:1px solid #888;padding:.2em .5em}');
+  S.chapters.forEach((c,i)=>{
+    const d=document.implementation.createHTMLDocument('');d.body.innerHTML=c.html;
+    d.querySelectorAll('img').forEach(im=>{
+      const mt=/^data:(image\/[a-z]+);base64,(.*)$/.exec(im.getAttribute('src')||'');
+      if(mt&&EXT[mt[1]]){const name='img'+(++n)+'.'+EXT[mt[1]];imgs.push({name,mime:mt[1],b64:mt[2]});im.setAttribute('src','../images/'+name)}
+      if(!im.hasAttribute('alt'))im.setAttribute('alt','');
+      im.removeAttribute('style');
+    });
+    d.querySelectorAll('a[href^="#chap-"]').forEach(a=>{
+      const k=S.chapters.findIndex(x=>'#chap-'+x.id===a.getAttribute('href'));
+      if(k>=0)a.setAttribute('href','ch'+(k+1)+'.xhtml');else a.replaceWith(...a.childNodes);
+    });
+    const body=new XMLSerializer().serializeToString(d.body);
+    zip.file('OEBPS/text/ch'+(i+1)+'.xhtml','<?xml version="1.0" encoding="utf-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" xml:lang="'+esc(lang)+'"><head><meta charset="utf-8"/><title>'+esc(c.title)+'</title><link rel="stylesheet" href="../style.css"/></head>'+body+'</html>');
+  });
+  imgs.forEach(x=>zip.file('OEBPS/images/'+x.name,x.b64,{base64:true}));
+  let coverItem='',coverMeta='';
+  if(m.cover){const mt=/^data:(image\/[a-z]+);base64,(.*)$/.exec(m.cover);if(mt&&EXT[mt[1]]){const nm='cover.'+EXT[mt[1]];zip.file('OEBPS/images/'+nm,mt[2],{base64:true});coverItem='<item id="cover" href="images/'+nm+'" media-type="'+mt[1]+'" properties="cover-image"/>';coverMeta='<meta name="cover" content="cover"/>'}}
+  const toc=S.chapters.map((c,i)=>'<li><a href="text/ch'+(i+1)+'.xhtml">'+esc(c.title)+'</a></li>').join('');
+  zip.file('OEBPS/nav.xhtml','<?xml version="1.0" encoding="utf-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops"><head><meta charset="utf-8"/><title>Mục lục</title></head><body><nav epub:type="toc"><h1>Mục lục</h1><ol>'+toc+'</ol></nav></body></html>');
+  const pts=S.chapters.map((c,i)=>'<navPoint id="n'+(i+1)+'" playOrder="'+(i+1)+'"><navLabel><text>'+esc(c.title)+'</text></navLabel><content src="text/ch'+(i+1)+'.xhtml"/></navPoint>').join('');
+  zip.file('OEBPS/toc.ncx','<?xml version="1.0" encoding="utf-8"?><ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1"><head><meta name="dtb:uid" content="'+id+'"/></head><docTitle><text>'+esc(title)+'</text></docTitle><navMap>'+pts+'</navMap></ncx>');
+  const man=S.chapters.map((c,i)=>'<item id="c'+(i+1)+'" href="text/ch'+(i+1)+'.xhtml" media-type="application/xhtml+xml"/>').join('')
+    +imgs.map((x,i)=>'<item id="i'+(i+1)+'" href="images/'+x.name+'" media-type="'+x.mime+'"/>').join('');
+  const spine=(m.tocPage?'<itemref idref="nav"/>':'')+S.chapters.map((c,i)=>'<itemref idref="c'+(i+1)+'"/>').join('');
+  zip.file('OEBPS/content.opf','<?xml version="1.0" encoding="utf-8"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="uid"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:identifier id="uid">'+id+'</dc:identifier><dc:title>'+esc(title)+'</dc:title><dc:language>'+esc(lang)+'</dc:language>'
+    +(m.author?'<dc:creator>'+esc(m.author)+'</dc:creator>':'')+(m.desc?'<dc:description>'+esc(m.desc)+'</dc:description>':'')+(m.pub?'<dc:publisher>'+esc(m.pub)+'</dc:publisher>':'')
+    +'<meta property="dcterms:modified">'+new Date().toISOString().replace(/\.\d+Z$/,'Z')+'</meta>'+coverMeta+'</metadata><manifest><item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/><item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/><item id="css" href="style.css" media-type="text/css"/>'+coverItem+man+'</manifest><spine toc="ncx">'+spine+'</spine></package>');
+  const blob=await zip.generateAsync({type:'blob',mimeType:'application/epub+zip'});
+  dl(blob,slug()+'.epub');msg('Đã xuất '+slug()+'.epub');
+};
+show();
+</script>
+</body>
+</html>
