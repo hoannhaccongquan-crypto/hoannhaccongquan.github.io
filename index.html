@@ -34,6 +34,11 @@ section{flex:1;display:flex;flex-direction:column;min-width:0}
 .tabs button.on{background:var(--bg);border-color:var(--acc);font-weight:600}
 #bar{display:flex;flex-wrap:wrap;gap:4px;padding:6px 10px;background:var(--panel);border-bottom:1px solid var(--line);align-items:center}
 #bar button{min-width:34px;padding:4px 8px}
+#bar input[type=number]{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:4px 6px;color:var(--ink)}
+#fList{position:absolute;top:100%;left:0;z-index:30;background:var(--panel);border:1px solid var(--line);border-radius:6px;max-height:60vh;overflow:auto;min-width:270px;box-shadow:0 8px 24px #0005;padding:4px 0}
+#fList b{display:block;padding:6px 12px;font:600 12px "Segoe UI",sans-serif;color:var(--mute)}
+#fList button{display:block;width:100%;text-align:left;border:0;border-radius:0;font-size:17px;padding:6px 12px;background:none}
+#fList button:hover{background:var(--bg)}#fList small{color:var(--mute);font-size:13px;margin-left:8px}
 #bar select{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:4px 6px}
 #bar .sep{width:1px;align-self:stretch;background:var(--line);margin:0 4px}
 .wrap{flex:1;overflow:auto;padding:18px}
@@ -45,6 +50,15 @@ section{flex:1;display:flex;flex-direction:column;min-width:0}
 dialog{border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);padding:0;width:min(520px,94vw)}
 dialog::backdrop{background:#0008}
 dialog form{padding:18px;display:grid;gap:10px}
+.atbl{width:100%;border-collapse:collapse;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
+.atbl th{width:100px;text-align:left;padding:10px 12px;color:var(--mute);font-weight:600;border-bottom:1px solid var(--line)}
+.atbl td{padding:6px 8px;border-bottom:1px solid var(--line)}
+.atbl tr:last-child th,.atbl tr:last-child td{border-bottom:0}
+.atbl input{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 10px;color:var(--ink)}
+.atbl input:disabled{opacity:.55}
+#dAuth{width:min(480px,94vw)}#dAuth form{padding:26px 24px;gap:14px}#dAuth h2{font-size:21px;text-align:center}
+#aForgot a,#aFoot a{color:var(--acc);font-weight:600}
+.xbtn{position:absolute;top:8px;right:10px;border:0;background:none;font-size:20px;line-height:1;padding:4px 8px;color:var(--mute)}.xbtn:hover{color:var(--ink)}
 dialog h2{margin:0;font-size:17px}
 label{display:grid;gap:3px;color:var(--mute);font-size:13px}
 label input,label textarea{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 9px;color:var(--ink)}
@@ -76,8 +90,8 @@ label input,label textarea{background:var(--bg);border:1px solid var(--line);bor
   <section>
     <div class="tabs"><button id="tV" class="on">Trực quan</button><button id="tC">Mã HTML</button></div>
     <div id="bar">
-      <select id="sFont" title="Phông chữ"><option value="">Phông chữ</option><option>Georgia</option><option>Times New Roman</option><option>Palatino Linotype</option><option>Arial</option><option>Verdana</option><option>Tahoma</option><option>Trebuchet MS</option><option>Segoe UI</option><option>Courier New</option></select>
-      <select id="sSize" title="Cỡ chữ"><option value="">Cỡ chữ</option><option>12</option><option>14</option><option>16</option><option>18</option><option>20</option><option>24</option><option>28</option><option>32</option><option>40</option></select>
+      <div id="fsel" style="position:relative"><button type="button" id="sFont" title="Phông chữ" style="min-width:170px;text-align:left">Phông chữ ▾</button><div id="fList" hidden></div></div>
+      <input id="sSize" type="number" list="sizes" min="6" max="200" step="1" placeholder="Cỡ" title="Cỡ chữ: nhập số rồi Enter, hoặc chọn gợi ý" style="width:78px"><datalist id="sizes"><option value="12"><option value="14"><option value="16"><option value="18"><option value="20"><option value="24"><option value="28"><option value="32"><option value="40"><option value="48"></datalist>
       <label style="display:flex;flex-direction:row;align-items:center;gap:4px" title="Màu chữ">Màu <input type="color" id="cText" value="#000000" style="padding:0;width:34px;height:28px;border:1px solid var(--line);background:none"></label><span class="sep"></span>
       <button data-b="h1">H1</button><button data-b="h2">H2</button><button data-b="h3">H3</button><button data-b="p">¶</button><span class="sep"></span>
       <button data-c="bold"><b>B</b></button><button data-c="italic"><i>I</i></button><button data-c="underline"><u>U</u></button><button data-c="strikeThrough"><s>S</s></button><span class="sep"></span>
@@ -99,6 +113,7 @@ label input,label textarea{background:var(--bg);border:1px solid var(--line);bor
     <label>Ngôn ngữ<input id="mLang" placeholder="vi"></label>
     <label>Nhà xuất bản<input id="mPub"></label>
     <label style="display:flex;gap:8px;align-items:center;flex-direction:row"><input type="checkbox" id="mToc">Chèn trang Mục lục vào đầu sách</label>
+    <label style="display:flex;gap:8px;align-items:center;flex-direction:row"><input type="checkbox" id="mEmb" checked>Nhúng phông Google vào EPUB (cần mạng, file nặng hơn)</label>
     <label>Bìa (tỷ lệ 2:3)<input type="file" id="mCover" accept="image/png,image/jpeg"></label>
     <img id="cov" alt="Bìa sách">
     <div class="row"><button type="button" id="mRm">Bỏ bìa</button><button class="pri" value="ok">Xong</button></div>
@@ -112,18 +127,37 @@ label input,label textarea{background:var(--bg);border:1px solid var(--line);bor
   </form>
 </dialog>
 <dialog id="dAuth">
-  <form method="dialog">
-    <h2>Tài khoản</h2>
+  <form method="dialog" id="fAuth">
+    <h2 id="aTitle">Đăng nhập</h2>
     <div id="authIn">
-      <label>Email<input id="aEmail" type="email" autocomplete="email"></label>
-      <label>Mật khẩu (từ 6 ký tự)<input id="aPass" type="password" autocomplete="current-password"></label>
-      <label>Tên hiển thị (chỉ cần khi đăng ký)<input id="aName" maxlength="40"></label>
-      <div class="row"><span id="aMsg" style="margin-right:auto;color:var(--danger);font-size:13px"></span><button type="button" id="aUp">Đăng ký</button><button type="button" class="pri" id="aIn">Đăng nhập</button></div>
+      <table class="atbl">
+        <tr id="rUid"><th>UID</th><td><input id="aUid" inputmode="numeric" autocomplete="off" maxlength="10"></td></tr>
+        <tr id="rUser"><th>Username</th><td><input id="aUser" autocomplete="username" maxlength="24"></td></tr>
+        <tr id="rMail"><th>Email</th><td><input id="aMail" type="email" autocomplete="email"></td></tr>
+        <tr id="rPass"><th>Mật khẩu</th><td><input id="aPass" type="password" autocomplete="current-password"></td></tr>
+      </table>
+      <div id="aMsg" style="min-height:18px;color:var(--danger);font-size:13px"></div>
+      <button type="button" class="pri" id="aGo" style="padding:9px 14px;font-size:16px">Đăng nhập</button>
+      <p id="aForgot" style="margin:0;text-align:center"><a href="#" id="aFg">Quên mật khẩu?</a></p>
+      <p id="aFoot" style="margin:0;text-align:center;color:var(--mute)"><span id="aAsk">Bạn chưa có tài khoản?</span> <a href="#" id="aSw">Đăng ký</a> / <a href="#" id="aGst">Tài khoản khách</a></p>
+    </div>
+    <div id="authGuest" hidden>
+      <p id="aGuest" style="margin:0;line-height:1.55"></p>
+      <div class="row" style="justify-content:center"><button type="button" class="pri" id="gLogin">Đăng nhập</button><button type="button" id="gReg">Đăng ký</button></div>
+      <div class="row" style="justify-content:center"><button type="button" id="gOut">Thoát tài khoản khách</button></div>
     </div>
     <div id="authOut" hidden>
       <p id="aWho" style="margin:0"></p>
       <div class="row"><button type="button" id="aOut">Đăng xuất</button><button value="x">Đóng</button></div>
     </div>
+  </form>
+</dialog>
+<dialog id="dNewPw">
+  <form method="dialog">
+    <h2>Đặt mật khẩu mới</h2>
+    <label>Mật khẩu mới (từ 6 ký tự)<input id="nPw" type="password" autocomplete="new-password"></label>
+    <div id="nMsg" style="min-height:18px;color:var(--danger);font-size:13px"></div>
+    <div class="row"><button type="button" class="pri" id="nGo">Đổi mật khẩu</button></div>
   </form>
 </dialog>
 <dialog id="dShelf">
@@ -150,7 +184,7 @@ const uid=()=>'c'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 function ensureIds(){S.chapters.forEach(c=>{if(!c.id)c.id=uid()})}
 ensureIds();
 let timer;
-function msg(t){$('#msg').textContent=t;clearTimeout(msg.t);msg.t=setTimeout(()=>$('#msg').textContent='',3500)}
+function msg(t,ms){$('#msg').textContent=t;clearTimeout(msg.t);msg.t=setTimeout(()=>$('#msg').textContent='',ms||3500)}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){msg('Bộ nhớ trình duyệt đầy, hãy bấm "Lưu bản nháp".')}}
 function later(){clearTimeout(timer);timer=setTimeout(persist,600)}
 function syncOut(){S.chapters[S.cur].html=$('#code').style.display==='block'?code.value:ed.innerHTML}
@@ -170,7 +204,7 @@ function renderList(){
   });
 }
 function move(i,d){const j=i+d;if(j<0||j>=S.chapters.length)return;syncOut();const[c]=S.chapters.splice(i,1);S.chapters.splice(j,0,c);S.cur=j;show();persist()}
-ed.addEventListener('input',()=>{S.chapters[S.cur].html=ed.innerHTML;later()});
+ed.addEventListener('input',()=>{fixSize();S.chapters[S.cur].html=ed.innerHTML;later()});
 code.addEventListener('input',()=>{S.chapters[S.cur].html=code.value;later()});
 $('#tV').onclick=()=>{syncOut();ed.innerHTML=S.chapters[S.cur].html;code.style.display='none';$('#wrap').style.display='';$('#bar').style.display='';$('#tV').className='on';$('#tC').className=''};
 $('#tC').onclick=()=>{syncOut();code.value=S.chapters[S.cur].html;code.style.display='block';$('#wrap').style.display='none';$('#bar').style.display='none';$('#tC').className='on';$('#tV').className=''};
@@ -179,10 +213,46 @@ document.querySelectorAll('[data-c]').forEach(b=>{b.onmousedown=e=>e.preventDefa
 document.querySelectorAll('[data-b]').forEach(b=>{b.onmousedown=e=>e.preventDefault();b.onclick=()=>{ed.focus();document.execCommand('formatBlock',false,b.dataset.b);S.chapters[S.cur].html=ed.innerHTML;later()}});
 let saved;
 $('#bChap').onmousedown=$('#bLink').onmousedown=$('#bImg').onmousedown=$('#bTbl').onmousedown=()=>{const s=getSelection();saved=s.rangeCount?s.getRangeAt(0).cloneRange():null};
-document.addEventListener('selectionchange',()=>{const t=getSelection();if(t.rangeCount&&ed.contains(t.anchorNode))saved=t.getRangeAt(0).cloneRange()});
-function styled(fn){restore();document.execCommand('styleWithCSS',false,true);fn();S.chapters[S.cur].html=ed.innerHTML;later()}
-$('#sFont').onchange=e=>{const v=e.target.value;e.target.selectedIndex=0;if(v)styled(()=>document.execCommand('fontName',false,v))};
-$('#sSize').onchange=e=>{const v=e.target.value;e.target.selectedIndex=0;if(!v)return;styled(()=>{document.execCommand('fontSize',false,'7');ed.querySelectorAll('span').forEach(x=>{if(x.style.fontSize==='xxx-large')x.style.fontSize=v+'px'});ed.querySelectorAll('font[size="7"]').forEach(x=>{x.removeAttribute('size');x.style.fontSize=v+'px'})})};
+const SYS=['Georgia','Times New Roman','Palatino Linotype','Arial','Verdana','Tahoma','Trebuchet MS','Segoe UI','Courier New'];
+const GF=['Be Vietnam Pro','Roboto','Open Sans','Noto Sans','Noto Serif','Lora','Merriweather','Playfair Display','EB Garamond','Crimson Pro','Source Serif 4','Montserrat','Nunito','Quicksand','Josefin Sans','Dancing Script','Pacifico','Lobster','Patrick Hand'];
+GF.forEach(n=>{const l=document.createElement('link');l.rel='stylesheet';l.href='https://fonts.googleapis.com/css2?family='+n.replace(/ /g,'+')+'&display=swap';document.head.appendChild(l)});
+(()=>{
+  const L=$('#fList');
+  const grp=(t,arr)=>{
+    const h=document.createElement('b');h.textContent=t;L.appendChild(h);
+    arr.forEach(n=>{
+      const o=document.createElement('button');o.type='button';o.style.fontFamily='"'+n+'"';
+      o.appendChild(document.createTextNode(n));const sm=document.createElement('small');sm.textContent='Tiếng Việt';o.appendChild(sm);
+      o.onmousedown=e=>e.preventDefault();
+      o.onclick=()=>{L.hidden=true;applyFont(n)};
+      L.appendChild(o);
+    });
+  };
+  grp('Có sẵn trên máy',SYS);grp('Google Fonts (miễn phí)',GF);
+  $('#sFont').onclick=()=>{L.hidden=!L.hidden};
+  document.addEventListener('click',e=>{if(!e.target.closest('#fsel'))L.hidden=true});
+})();
+let lastSize=18;
+function fixSize(){
+  ed.querySelectorAll('span').forEach(x=>{if(x.style.fontSize==='xxx-large')x.style.fontSize=lastSize+'px'});
+  ed.querySelectorAll('font[size="7"]').forEach(x=>{x.removeAttribute('size');x.style.fontSize=lastSize+'px'});
+}
+const toHex=c=>{const m=/\d+/g,a=(c||'').match(m);return a&&a.length>=3?'#'+a.slice(0,3).map(n=>(+n).toString(16).padStart(2,'0')).join(''):'#000000'};
+let hold=0;
+function setFontLabel(n){const b=$('#sFont');b.textContent=(n||'Phông chữ')+' ▾';b.style.fontFamily=n?'"'+n+'"':''}
+function syncFmt(){
+  const t=getSelection();if(!t.rangeCount||!ed.contains(t.anchorNode))return;
+  let n=t.anchorNode;if(n.nodeType===3)n=n.parentElement;if(!n)return;
+  if(Date.now()<hold)return;
+  const cs=getComputedStyle(n);
+  setFontLabel(cs.fontFamily.split(',')[0].replace(/["']/g,'').trim());
+  if(document.activeElement!==$('#sSize'))$('#sSize').value=Math.round(parseFloat(cs.fontSize));
+  $('#cText').value=toHex(cs.color);
+}
+document.addEventListener('selectionchange',()=>{const t=getSelection();if(t.rangeCount&&ed.contains(t.anchorNode)){saved=t.getRangeAt(0).cloneRange();syncFmt()}});
+function styled(fn){restore();document.execCommand('styleWithCSS',false,true);fn();S.chapters[S.cur].html=ed.innerHTML;later();const t=getSelection();if(t.rangeCount&&!t.isCollapsed)syncFmt()}
+function applyFont(n){hold=Date.now()+700;setFontLabel(n);styled(()=>document.execCommand('fontName',false,n))}
+$('#sSize').onchange=()=>{const v=parseInt($('#sSize').value,10);if(!(v>=6&&v<=200))return;hold=Date.now()+700;lastSize=v;styled(()=>{document.execCommand('fontSize',false,'7');fixSize()})};
 $('#cText').oninput=e=>styled(()=>document.execCommand('foreColor',false,e.target.value));
 function restore(){ed.focus();if(saved){const s=getSelection();s.removeAllRanges();s.addRange(saved)}}
 $('#bLink').onclick=()=>{const u=prompt('Địa chỉ liên kết (https://...)');if(u){restore();document.execCommand('createLink',false,u);S.chapters[S.cur].html=ed.innerHTML;later()}};
@@ -209,8 +279,8 @@ $('#bChap').onclick=()=>{
 };
 
 // Thông tin sách
-function metaOut(){const m=S.meta;m.title=$('#mTitle').value;m.author=$('#mAuthor').value;m.desc=$('#mDesc').value;m.lang=$('#mLang').value||'vi';m.pub=$('#mPub').value;m.tocPage=$('#mToc').checked;persist()}
-function metaIn(){const m=S.meta;$('#mTitle').value=m.title;$('#mAuthor').value=m.author;$('#mDesc').value=m.desc;$('#mLang').value=m.lang;$('#mPub').value=m.pub;$('#mToc').checked=!!m.tocPage;const c=$('#cov');c.style.display=m.cover?'block':'none';if(m.cover)c.src=m.cover}
+function metaOut(){const m=S.meta;m.title=$('#mTitle').value;m.author=$('#mAuthor').value;m.desc=$('#mDesc').value;m.lang=$('#mLang').value||'vi';m.pub=$('#mPub').value;m.tocPage=$('#mToc').checked;m.embedFonts=$('#mEmb').checked;persist()}
+function metaIn(){const m=S.meta;$('#mTitle').value=m.title;$('#mAuthor').value=m.author;$('#mDesc').value=m.desc;$('#mLang').value=m.lang;$('#mPub').value=m.pub;$('#mToc').checked=!!m.tocPage;$('#mEmb').checked=m.embedFonts!==false;const c=$('#cov');c.style.display=m.cover?'block':'none';if(m.cover)c.src=m.cover}
 $('#bMeta').onclick=()=>{metaIn();$('#dMeta').showModal()};
 $('#dMeta').addEventListener('close',metaOut);
 $('#mCover').onchange=async e=>{const f=e.target.files[0];if(f){S.meta.cover=await readURL(f);metaIn()}};
@@ -233,7 +303,28 @@ async function buildEpub(B){
   const zip=new JSZip(),imgs=[];let n=0;
   zip.file('mimetype','application/epub+zip',{compression:'STORE'});
   zip.file('META-INF/container.xml','<?xml version="1.0"?><container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container"><rootfiles><rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/></rootfiles></container>');
-  zip.file('OEBPS/style.css','body{font-family:serif;line-height:1.6}h1,h2,h3{line-height:1.25}img{max-width:100%}table{border-collapse:collapse}td,th{border:1px solid #888;padding:.2em .5em}');
+  let css='body{font-family:serif;line-height:1.6}h1,h2,h3{line-height:1.25}img{max-width:100%}table{border-collapse:collapse}td,th{border:1px solid #888;padding:.2em .5em}',fcss='';
+  const used=new Set(),fontFiles=[];
+  const dd=document.createElement('div');
+  B.chapters.forEach(c=>{dd.innerHTML=c.html;dd.querySelectorAll('[style]').forEach(x=>{const ff=x.style.fontFamily;if(ff){const nm=ff.split(',')[0].replace(/["']/g,'').trim();if(GF.includes(nm))used.add(nm)}})});
+  if(used.size&&m.embedFonts!==false){
+    try{
+      msg('Đang nhúng phông…');
+      for(const fam of used){
+        const t=await (await fetch('https://fonts.googleapis.com/css2?family='+fam.replace(/ /g,'+')+'&display=swap')).text();
+        for(const b of (t.match(/\/\*[^*]*\*\/\s*@font-face\s*\{[^}]*\}/g)||[])){
+          const sub=(/\/\*\s*([\w-]+)\s*\*\//.exec(b)||[])[1];
+          if(!['latin','latin-ext','vietnamese'].includes(sub))continue;
+          const u=/url\((https:[^)]+)\)/.exec(b)[1],ur=/unicode-range:\s*([^;]+);/.exec(b);
+          const buf=await (await fetch(u)).arrayBuffer(),fn='f'+(fontFiles.length+1)+'.woff2';
+          fontFiles.push({name:fn,buf});
+          fcss+='@font-face{font-family:"'+fam+'";src:url(fonts/'+fn+') format("woff2");'+(ur?'unicode-range:'+ur[1]+';':'')+'}';
+        }
+      }
+    }catch(e){fontFiles.length=0;fcss='';msg('Không nhúng được phông, EPUB sẽ dùng phông có sẵn trên máy đọc.')}
+  }
+  zip.file('OEBPS/style.css',css+fcss);
+  fontFiles.forEach(x=>zip.file('OEBPS/fonts/'+x.name,x.buf));
   B.chapters.forEach((c,i)=>{
     const d=document.implementation.createHTMLDocument('');d.body.innerHTML=c.html;
     d.querySelectorAll('img').forEach(im=>{
@@ -257,14 +348,15 @@ async function buildEpub(B){
   const pts=B.chapters.map((c,i)=>'<navPoint id="n'+(i+1)+'" playOrder="'+(i+1)+'"><navLabel><text>'+esc(c.title)+'</text></navLabel><content src="text/ch'+(i+1)+'.xhtml"/></navPoint>').join('');
   zip.file('OEBPS/toc.ncx','<?xml version="1.0" encoding="utf-8"?><ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1"><head><meta name="dtb:uid" content="'+id+'"/></head><docTitle><text>'+esc(title)+'</text></docTitle><navMap>'+pts+'</navMap></ncx>');
   const man=B.chapters.map((c,i)=>'<item id="c'+(i+1)+'" href="text/ch'+(i+1)+'.xhtml" media-type="application/xhtml+xml"/>').join('')
-    +imgs.map((x,i)=>'<item id="i'+(i+1)+'" href="images/'+x.name+'" media-type="'+x.mime+'"/>').join('');
+    +imgs.map((x,i)=>'<item id="i'+(i+1)+'" href="images/'+x.name+'" media-type="'+x.mime+'"/>').join('')
+    +fontFiles.map((x,i)=>'<item id="f'+(i+1)+'" href="fonts/'+x.name+'" media-type="font/woff2"/>').join('');
   const spine=(m.tocPage?'<itemref idref="nav"/>':'')+B.chapters.map((c,i)=>'<itemref idref="c'+(i+1)+'"/>').join('');
   zip.file('OEBPS/content.opf','<?xml version="1.0" encoding="utf-8"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="uid"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:identifier id="uid">'+id+'</dc:identifier><dc:title>'+esc(title)+'</dc:title><dc:language>'+esc(lang)+'</dc:language>'
     +(m.author?'<dc:creator>'+esc(m.author)+'</dc:creator>':'')+(m.desc?'<dc:description>'+esc(m.desc)+'</dc:description>':'')+(m.pub?'<dc:publisher>'+esc(m.pub)+'</dc:publisher>':'')
     +'<meta property="dcterms:modified">'+new Date().toISOString().replace(/\.\d+Z$/,'Z')+'</meta>'+coverMeta+'</metadata><manifest><item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/><item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/><item id="css" href="style.css" media-type="text/css"/>'+coverItem+man+'</manifest><spine toc="ncx">'+spine+'</spine></package>');
   return zip.generateAsync({type:'blob',mimeType:'application/epub+zip'});
 }
-$('#bExp').onclick=async()=>{syncOut();persist();const blob=await buildEpub(S);if(blob&&await dl(blob,slug()+'.epub'))msg('Đã xuất '+slug()+'.epub')};
+$('#bExp').onclick=async()=>{if(!canExport())return;syncOut();persist();const blob=await buildEpub(S);if(blob&&await dl(blob,slug()+'.epub')){exported();msg('Đã xuất '+slug()+'.epub')}};
 
 // Kệ sách trên Supabase
 // >>> Dán 2 giá trị lấy từ Supabase (Project Settings -> API) vào đây:
@@ -273,14 +365,34 @@ const SB_KEY='sb_publishable_MM_YksiOIgC_Xi8u6sqi7w_AQQ81fZe';
 // <<<
 const sb=(/^https:\/\/.+\.supabase\.co\/?$/.test(SB_URL)&&SB_KEY.length>20&&window.supabase)?supabase.createClient(SB_URL,SB_KEY):null;
 let user=null,mine=[],pub=[],tab='mine';
-const nameOf=u=>(u.user_metadata&&u.user_metadata.name)||(u.email||'').split('@')[0];
+const nameOf=u=>(u.user_metadata&&u.user_metadata.name)||(u.is_anonymous?'Khách':(u.email||'').split('@')[0]);
+let guestLocal=false;
+const isGuest=()=>!user||!!user.is_anonymous;
 const fmtD=t=>t?new Date(t).toLocaleDateString('vi-VN'):'';
 const COLS='id,owner,owner_name,title,author,chapters,is_public,updated_at';
 function btn(t,fn){const b=document.createElement('button');b.textContent=t;b.onclick=fn;return b}
+const GUEST_LIMIT=5;
+const dayKey=()=>{const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()};
+function guestUsed(){try{const o=JSON.parse(localStorage.getItem('epub-guest')||'{}');return o.d===dayKey()?(o.n||0):0}catch(e){return 0}}
+function canExport(){
+  if(!isGuest()||guestUsed()<GUEST_LIMIT)return true;
+  setMode('in');$('#aMsg').textContent='Khách đã dùng hết '+GUEST_LIMIT+' lượt hôm nay. Đăng nhập để tiếp tục.';updateAuth();$('#dAuth').showModal();return false;
+}
+function exported(){
+  if(!isGuest())return;
+  try{localStorage.setItem('epub-guest',JSON.stringify({d:dayKey(),n:guestUsed()+1}))}catch(e){}
+  updateAuth();
+  const left=Math.max(0,GUEST_LIMIT-guestUsed());setTimeout(()=>msg('Khách còn '+left+'/'+GUEST_LIMIT+' lượt tải hôm nay.'),2200);
+}
 function updateAuth(){
-  $('#bAuth').textContent=user?nameOf(user):'Đăng nhập';
-  $('#authIn').hidden=!!user;$('#authOut').hidden=!user;
-  if(user)$('#aWho').textContent='Đang đăng nhập: '+user.email;
+  const left=Math.max(0,GUEST_LIMIT-guestUsed()),real=user&&!user.is_anonymous;
+  $('#bAuth').textContent=real?nameOf(user):(user||guestLocal)?'Khách':'Đăng nhập';
+  $('#bAuth').title=real?'Tài khoản':'Đăng nhập, đăng ký hoặc dùng tài khoản khách';
+  $('#kMine').textContent=isGuest()?'Kệ tạm':'Kệ của tôi';
+  $('#aGuest').textContent='Bạn đang dùng Tài khoản khách. Khách chỉ xem được các kệ công khai và soạn thảo tự do. '
+    +(user?'Sách lưu lên kệ chỉ được giữ tạm khoảng 1 đến 3 ngày (tối đa 3 cuốn) và có thể bị mất, vì web không lưu lịch sử của khách; nếu xóa dữ liệu trình duyệt thì mất ngay. ':'Chế độ này hiện chưa lưu tạm được lên kệ. ')
+    +'Xuất hoặc tải EPUB tối đa '+GUEST_LIMIT+' lần mỗi ngày (hôm nay còn '+left+' lượt). Đăng nhập hoặc đăng ký để lưu lâu dài và không bị giới hạn. Lưu ý: khi đăng nhập, kệ tạm của khách sẽ không đi theo sang tài khoản mới.';
+  if(real)$('#aWho').textContent='Đang đăng nhập: '+nameOf(user)+' · UID '+((user.user_metadata&&user.user_metadata.uid)||'—');
 }
 async function refresh(){
   if(sb){
@@ -297,9 +409,10 @@ function renderShelf(){
   const box=$('#shelf');box.innerHTML='';
   $('#kMine').className=tab==='mine'?'on':'';$('#kPub').className=tab==='pub'?'on':'';
   if(!sb){box.textContent='Kệ sách chưa được cấu hình (thiếu thông tin Supabase trong trang).';return}
-  if(tab==='mine'&&!user){box.textContent='Hãy đăng nhập (nút ở thanh trên cùng) để dùng kệ riêng.';return}
+  if(tab==='mine'&&!user){box.textContent=guestLocal?'Chế độ khách hiện chưa lưu tạm được. Hãy đăng nhập để dùng kệ riêng.':'Hãy đăng nhập (nút ở thanh trên cùng) để dùng kệ riêng.';return}
   const list=tab==='mine'?mine:pub;
-  if(!list.length){box.textContent=tab==='mine'?'Kệ của bạn còn trống. Soạn xong thì bấm "Lưu lên kệ".':'Chưa có sách công khai nào.';return}
+  if(tab==='mine'&&isGuest()){const n=document.createElement('div');n.className='bk';n.innerHTML='<small>Kệ tạm của khách: sách chỉ được giữ khoảng 1 đến 3 ngày và có thể bị mất. Đăng nhập để lưu lâu dài.</small>';box.appendChild(n)}
+  if(!list.length){box.appendChild(document.createTextNode(tab==='mine'?'Kệ còn trống. Soạn xong thì bấm "Lưu lên kệ".':'Chưa có sách công khai nào.'));return}
   list.forEach(b=>{
     const d=document.createElement('div');d.className='bk';
     d.innerHTML='<div><b></b><br><small></small></div><div class="row"></div>';
@@ -312,10 +425,11 @@ function renderShelf(){
     }));
     r.appendChild(btn('Tải EPUB',async()=>{
       msg('Đang tạo EPUB…');
-      try{const x=await get();const blob=await buildEpub(x);if(blob&&dl(blob,slug(x.meta.title||b.title)+'.epub'))msg('Đã tải EPUB.')}catch(e){msg('Không tạo được EPUB.')}
+      if(!canExport())return;
+      try{const x=await get();const blob=await buildEpub(x);if(blob&&dl(blob,slug(x.meta.title||b.title)+'.epub')){exported();msg('Đã tải EPUB.')}}catch(e){msg('Không tạo được EPUB.')}
     }));
     if(tab==='mine'){
-      r.appendChild(btn(b.is_public?'Bỏ công khai':'Công khai',async()=>{
+      if(!isGuest())r.appendChild(btn(b.is_public?'Bỏ công khai':'Công khai',async()=>{
         const q=await sb.from('books').update({is_public:!b.is_public}).eq('id',b.id);
         if(q.error)msg('Không đổi được chế độ công khai.');await refresh();
       }));
@@ -333,23 +447,96 @@ function renderShelf(){
 $('#kMine').onclick=()=>{tab='mine';renderShelf()};
 $('#kPub').onclick=()=>{tab='pub';renderShelf()};
 $('#bShelf').onclick=async()=>{await refresh();renderShelf();$('#dShelf').showModal()};
-$('#bAuth').onclick=()=>{$('#aMsg').textContent='';updateAuth();$('#dAuth').showModal()};
-async function auth(kind){
-  if(!sb){$('#aMsg').textContent='Trang chưa được cấu hình Supabase.';return}
-  const email=$('#aEmail').value.trim(),password=$('#aPass').value;
-  if(!email||password.length<6){$('#aMsg').textContent='Nhập email và mật khẩu từ 6 ký tự.';return}
-  $('#aMsg').textContent='Đang xử lý…';
-  const r=kind==='up'?await sb.auth.signUp({email,password,options:{data:{name:$('#aName').value.trim()}}}):await sb.auth.signInWithPassword({email,password});
-  if(r.error){$('#aMsg').textContent=r.error.message;return}
-  if(kind==='up'&&!r.data.session){$('#aMsg').textContent='Hãy mở email và bấm link xác nhận, rồi quay lại đăng nhập.';return}
-  $('#aPass').value='';$('#dAuth').close();msg('Đã đăng nhập.');
+let amode='in';
+function showAuthView(v){
+  $('#authIn').hidden=v!=='in';$('#authGuest').hidden=v!=='guest';$('#authOut').hidden=v!=='out';
+  $('#aTitle').textContent=v==='out'?'Tài khoản':v==='guest'?'Tài khoản khách':amode==='up'?'Đăng ký tài khoản':amode==='forgot'?'Quên mật khẩu':'Đăng nhập';
 }
-$('#aIn').onclick=()=>auth('in');
-$('#aUp').onclick=()=>auth('up');
+function setMode(m){
+  amode=m;
+  $('#rUid').hidden=m==='forgot';$('#rUser').hidden=m==='forgot';$('#rMail').hidden=false;$('#rPass').hidden=m==='forgot';
+  $('#aGo').textContent=m==='in'?'Đăng nhập':m==='up'?'Đăng ký':'Gửi liên kết đặt lại';
+  $('#aAsk').textContent=m==='in'?'Bạn chưa có tài khoản?':m==='up'?'Đã có tài khoản?':'Nhớ mật khẩu rồi?';
+  $('#aSw').textContent=m==='in'?'Đăng ký':'Đăng nhập';
+  $('#aForgot').hidden=m!=='in';
+  const u=$('#aUid');u.disabled=m==='up';u.value='';u.placeholder=m==='up'?'Tự động cấp khi đăng ký':'Bắt buộc';
+  $('#aPass').autocomplete=m==='in'?'current-password':'new-password';
+  $('#aMsg').textContent='';$('#aMsg').style.color='var(--danger)';
+  showAuthView('in');
+}
+function openAuth(){
+  const real=user&&!user.is_anonymous,guest=!real&&(user||guestLocal);
+  updateAuth();
+  if(real)showAuthView('out');else if(guest)showAuthView('guest');else setMode('in');
+  $('#aPass').value='';$('#dAuth').showModal();
+}
+$('#bAuth').onclick=openAuth;
+$('#aSw').onclick=e=>{e.preventDefault();setMode(amode==='in'?'up':'in')};
+$('#aFg').onclick=e=>{e.preventDefault();setMode('forgot')};
+$('#gLogin').onclick=()=>setMode('in');
+$('#gReg').onclick=()=>setMode('up');
+$('#aGst').onclick=async e=>{
+  e.preventDefault();
+  if(!sb||!user){
+    let ok=false;
+    if(sb){try{const r=await sb.auth.signInAnonymously();ok=!r.error}catch(x){}}
+    if(!ok)guestLocal=true;
+  }
+  updateAuth();showAuthView('guest');
+};
+$('#gOut').onclick=async()=>{guestLocal=false;if(sb&&user)await sb.auth.signOut();user=null;updateAuth();$('#dAuth').close();msg('Đã thoát tài khoản khách.')};
+$('#aGo').onclick=()=>auth();
+$('#fAuth').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.tagName==='INPUT'){e.preventDefault();auth()}});
+async function auth(){
+  const A=$('#aMsg'),bad=t=>{A.style.color='var(--danger)';A.textContent=t};
+  if(!sb)return bad('Trang chưa được cấu hình Supabase.');
+  const uname=$('#aUser').value.trim(),password=$('#aPass').value,mail=$('#aMail').value.trim(),uidIn=$('#aUid').value.trim();
+  const okU=/^[A-Za-z0-9_.]{3,24}$/.test(uname),okM=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail);
+  A.style.color='var(--mute)';
+  if(amode==='forgot'){
+    if(!okM)return bad('Nhập email đã dùng khi đăng ký.');
+    A.textContent='Đang gửi…';
+    const r=await sb.auth.resetPasswordForEmail(mail,{redirectTo:location.origin+location.pathname});
+    if(r.error)return bad(r.error.message);
+    A.textContent='Đã gửi (nếu email đúng). Hãy mở email và bấm liên kết để đặt mật khẩu mới.';return;
+  }
+  if(!okU)return bad('Username dài 3 đến 24 ký tự: chữ không dấu, số, dấu _ hoặc dấu chấm.');
+  if(password.length<6)return bad('Mật khẩu cần từ 6 ký tự.');
+  if(amode==='in'){
+    const fail='Sai UID, Username, email hoặc mật khẩu.';
+    if(!/^\d{6,10}$/.test(uidIn))return bad('UID là bắt buộc (dãy số được cấp khi đăng ký).');
+    if(!okM)return bad('Nhập email đã dùng khi đăng ký.');
+    A.textContent='Đang xử lý…';
+    const r=await sb.auth.signInWithPassword({email:mail,password});
+    if(r.error)return bad(fail);
+    const md=r.data.user.user_metadata||{};
+    if(String(md.uid)!==uidIn||String(md.name||'').toLowerCase()!==uname.toLowerCase()){await sb.auth.signOut();return bad(fail)}
+    guestLocal=false;$('#aPass').value='';$('#dAuth').close();msg('Đã đăng nhập.');return;
+  }
+  if(!okM)return bad('Nhập email hợp lệ (dùng để lấy lại mật khẩu).');
+  A.textContent='Đang xử lý…';
+  let r,uid;
+  for(let k=0;k<3;k++){
+    uid=String(Math.floor(1e7+Math.random()*9e7));
+    r=await sb.auth.signUp({email:mail,password,options:{data:{name:uname,uid}}});
+    if(!r.error||!/database/i.test(r.error.message))break;
+  }
+  if(r.error)return bad(/registered|exists/i.test(r.error.message)?'Email này đã được đăng ký.':/database/i.test(r.error.message)?'Username này đã có người dùng.':r.error.message);
+  guestLocal=false;$('#aPass').value='';$('#dAuth').close();
+  if(!r.data.session)msg('Đã gửi email xác nhận. Hãy bấm liên kết trong email rồi đăng nhập. UID của bạn là '+uid+', hãy ghi nhớ.',12000);
+  else msg('Đăng ký thành công. UID của bạn là '+uid+', hãy ghi nhớ.',12000);
+}
+$('#nGo').onclick=async()=>{
+  const p=$('#nPw').value,N=$('#nMsg');
+  if(p.length<6){N.textContent='Mật khẩu cần từ 6 ký tự.';return}
+  const r=await sb.auth.updateUser({password:p});
+  if(r.error){N.textContent=r.error.message;return}
+  $('#nPw').value='';$('#dNewPw').close();msg('Đã đổi mật khẩu.');
+};
 $('#aOut').onclick=async()=>{await sb.auth.signOut();$('#dAuth').close();msg('Đã đăng xuất.')};
 $('#bShelfSave').onclick=async()=>{
   if(!sb)return msg('Kệ sách chưa được cấu hình.');
-  if(!user){$('#aMsg').textContent='Hãy đăng nhập để lưu lên kệ.';$('#dAuth').showModal();return}
+  if(!user){if(guestLocal){msg('Chế độ khách hiện chưa lưu tạm được. Hãy đăng nhập để lưu lên kệ.');return}setMode('in');$('#aMsg').textContent='Hãy đăng nhập hoặc dùng tài khoản khách để lưu lên kệ.';$('#dAuth').showModal();return}
   syncOut();persist();
   const b0=$('#bShelfSave');b0.disabled=true;msg('Đang lưu lên kệ…');
   try{
@@ -359,13 +546,15 @@ $('#bShelfSave').onclick=async()=>{
     if(S.shelfId){const q=await sb.from('books').update(row).eq('id',S.shelfId).select('id');if(q.error)throw q.error;if(q.data&&q.data.length)id=S.shelfId}
     if(!id){const q=await sb.from('books').insert(row).select('id').single();if(q.error)throw q.error;id=q.data.id}
     S.shelfId=id;persist();await refresh();msg('Đã lưu "'+row.title+'" lên kệ của bạn.');
-  }catch(e){msg('Không lưu được lên kệ.')}
+  }catch(e){msg(isGuest()?'Không lưu được. Khách chỉ lưu tối đa 3 cuốn, mỗi cuốn dưới 3 MB.':'Không lưu được lên kệ.')}
   b0.disabled=false;
 };
 if(sb){
   sb.auth.getSession().then(r=>{user=(r.data.session&&r.data.session.user)||null;updateAuth();refresh()});
-  sb.auth.onAuthStateChange((_e,sess)=>{user=(sess&&sess.user)||null;updateAuth();setTimeout(refresh,0)});
+  sb.auth.onAuthStateChange((_e,sess)=>{user=(sess&&sess.user)||null;updateAuth();setTimeout(refresh,0);if(_e==='PASSWORD_RECOVERY')setTimeout(()=>$('#dNewPw').showModal(),0)});
 }else refresh();
+updateAuth();
+document.querySelectorAll('dialog').forEach(d=>{const x=document.createElement('button');x.type='button';x.className='xbtn';x.textContent='✕';x.setAttribute('aria-label','Đóng');x.onclick=()=>d.close();d.appendChild(x)});
 show();
 </script>
 </body>
