@@ -52,6 +52,8 @@ label input,label textarea{background:var(--bg);border:1px solid var(--line);bor
 #cov{max-height:140px;max-width:93px;border:1px solid var(--line);display:none}
 #msg{color:var(--mute);font-size:13px;margin-right:auto}
 @media (max-width:760px){main{flex-direction:column}aside{width:auto;max-height:34%;border-right:0;border-bottom:1px solid var(--line)}#ed{padding:20px}}
+.bk{display:grid;gap:6px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+.bk b{font-size:15px}.bk small{color:var(--mute)}.bk .row{justify-content:flex-start;flex-wrap:wrap}
 </style>
 </head>
 <body>
@@ -61,6 +63,7 @@ label input,label textarea{background:var(--bg);border:1px solid var(--line);bor
   <button id="bNew">Sách mới</button>
   <button id="bOpen">Mở bản nháp</button>
   <button id="bSave">Lưu bản nháp</button>
+  <button id="bAuth">Đăng nhập</button><button id="bShelf">Kệ sách</button><button id="bShelfSave" class="pri">Lưu lên kệ</button>
   <button id="bMeta">Thông tin sách</button>
   <button id="bExp" class="pri">Xuất EPUB</button>
 </header>
@@ -108,10 +111,34 @@ label input,label textarea{background:var(--bg);border:1px solid var(--line);bor
     <div class="row"><button value="x">Đóng</button></div>
   </form>
 </dialog>
+<dialog id="dAuth">
+  <form method="dialog">
+    <h2>Tài khoản</h2>
+    <div id="authIn">
+      <label>Email<input id="aEmail" type="email" autocomplete="email"></label>
+      <label>Mật khẩu (từ 6 ký tự)<input id="aPass" type="password" autocomplete="current-password"></label>
+      <label>Tên hiển thị (chỉ cần khi đăng ký)<input id="aName" maxlength="40"></label>
+      <div class="row"><span id="aMsg" style="margin-right:auto;color:var(--danger);font-size:13px"></span><button type="button" id="aUp">Đăng ký</button><button type="button" class="pri" id="aIn">Đăng nhập</button></div>
+    </div>
+    <div id="authOut" hidden>
+      <p id="aWho" style="margin:0"></p>
+      <div class="row"><button type="button" id="aOut">Đăng xuất</button><button value="x">Đóng</button></div>
+    </div>
+  </form>
+</dialog>
+<dialog id="dShelf">
+  <form method="dialog">
+    <h2>Kệ sách</h2>
+    <div class="tabs" style="padding:0"><button type="button" id="kMine" class="on">Kệ của tôi</button><button type="button" id="kPub">Công khai</button></div>
+    <div id="shelf" style="display:grid;gap:8px;max-height:56vh;overflow:auto"></div>
+    <div class="row"><button value="x">Đóng</button></div>
+  </form>
+</dialog>
 <input type="file" id="fImg" accept="image/png,image/jpeg,image/gif,image/webp" hidden>
 <input type="file" id="fOpen" accept=".json,application/json" hidden>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 const $=s=>document.querySelector(s);
 const KEY='epub-editor-draft';
@@ -193,22 +220,21 @@ $('#mRm').onclick=()=>{S.meta.cover=null;$('#mCover').value='';metaIn()};
 $('#bNew').onclick=()=>{if(!confirm('Tạo sách mới? Nội dung hiện tại sẽ bị xóa nếu chưa lưu bản nháp.'))return;S=blank();show();persist()};
 $('#bSave').onclick=()=>{syncOut();persist();dl(new Blob([JSON.stringify(S)],{type:'application/json'}),slug()+'.draft.json')};
 $('#bOpen').onclick=()=>$('#fOpen').click();
-$('#fOpen').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{const d=JSON.parse(await f.text());if(!d.chapters||!d.meta)throw 0;S=d;S.cur=0;ensureIds();show();persist();msg('Đã mở bản nháp.')}catch(x){alert('Tệp này không phải bản nháp của trình soạn.')}};
-function slug(){return (S.meta.title||'sach').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D').replace(/[^\w]+/g,'-').replace(/^-|-$/g,'')||'sach'}
-function dl(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}
+$('#fOpen').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{const d=JSON.parse(await f.text());if(!d.chapters||!d.meta)throw 0;S=d;delete S.shelfId;S.cur=0;ensureIds();show();persist();msg('Đã mở bản nháp.')}catch(x){alert('Tệp này không phải bản nháp của trình soạn.')}};
+function slug(t=S.meta.title){return (t||'sach').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D').replace(/[^\w]+/g,'-').replace(/^-|-$/g,'')||'sach'}
+function dl(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);return true}
 
 // Xuất EPUB
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const EXT={'image/png':'png','image/jpeg':'jpg','image/gif':'gif','image/webp':'webp'};
-$('#bExp').onclick=async()=>{
-  if(typeof JSZip==='undefined')return alert('Chưa tải được thư viện JSZip. Hãy kết nối mạng rồi mở lại trang.');
-  syncOut();persist();
-  const m=S.meta,title=m.title||'Chưa đặt tên',lang=m.lang||'vi',id='urn:uuid:'+crypto.randomUUID();
+async function buildEpub(B){
+  if(typeof JSZip==='undefined'){alert('Chưa tải được thư viện JSZip. Hãy kết nối mạng rồi mở lại trang.');return null}
+  const m=B.meta,title=m.title||'Chưa đặt tên',lang=m.lang||'vi',id='urn:uuid:'+crypto.randomUUID();
   const zip=new JSZip(),imgs=[];let n=0;
   zip.file('mimetype','application/epub+zip',{compression:'STORE'});
   zip.file('META-INF/container.xml','<?xml version="1.0"?><container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container"><rootfiles><rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/></rootfiles></container>');
   zip.file('OEBPS/style.css','body{font-family:serif;line-height:1.6}h1,h2,h3{line-height:1.25}img{max-width:100%}table{border-collapse:collapse}td,th{border:1px solid #888;padding:.2em .5em}');
-  S.chapters.forEach((c,i)=>{
+  B.chapters.forEach((c,i)=>{
     const d=document.implementation.createHTMLDocument('');d.body.innerHTML=c.html;
     d.querySelectorAll('img').forEach(im=>{
       const mt=/^data:(image\/[a-z]+);base64,(.*)$/.exec(im.getAttribute('src')||'');
@@ -217,7 +243,7 @@ $('#bExp').onclick=async()=>{
       im.removeAttribute('style');
     });
     d.querySelectorAll('a[href^="#chap-"]').forEach(a=>{
-      const k=S.chapters.findIndex(x=>'#chap-'+x.id===a.getAttribute('href'));
+      const k=B.chapters.findIndex(x=>'#chap-'+x.id===a.getAttribute('href'));
       if(k>=0)a.setAttribute('href','ch'+(k+1)+'.xhtml');else a.replaceWith(...a.childNodes);
     });
     const body=new XMLSerializer().serializeToString(d.body);
@@ -226,19 +252,120 @@ $('#bExp').onclick=async()=>{
   imgs.forEach(x=>zip.file('OEBPS/images/'+x.name,x.b64,{base64:true}));
   let coverItem='',coverMeta='';
   if(m.cover){const mt=/^data:(image\/[a-z]+);base64,(.*)$/.exec(m.cover);if(mt&&EXT[mt[1]]){const nm='cover.'+EXT[mt[1]];zip.file('OEBPS/images/'+nm,mt[2],{base64:true});coverItem='<item id="cover" href="images/'+nm+'" media-type="'+mt[1]+'" properties="cover-image"/>';coverMeta='<meta name="cover" content="cover"/>'}}
-  const toc=S.chapters.map((c,i)=>'<li><a href="text/ch'+(i+1)+'.xhtml">'+esc(c.title)+'</a></li>').join('');
+  const toc=B.chapters.map((c,i)=>'<li><a href="text/ch'+(i+1)+'.xhtml">'+esc(c.title)+'</a></li>').join('');
   zip.file('OEBPS/nav.xhtml','<?xml version="1.0" encoding="utf-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops"><head><meta charset="utf-8"/><title>Mục lục</title></head><body><nav epub:type="toc"><h1>Mục lục</h1><ol>'+toc+'</ol></nav></body></html>');
-  const pts=S.chapters.map((c,i)=>'<navPoint id="n'+(i+1)+'" playOrder="'+(i+1)+'"><navLabel><text>'+esc(c.title)+'</text></navLabel><content src="text/ch'+(i+1)+'.xhtml"/></navPoint>').join('');
+  const pts=B.chapters.map((c,i)=>'<navPoint id="n'+(i+1)+'" playOrder="'+(i+1)+'"><navLabel><text>'+esc(c.title)+'</text></navLabel><content src="text/ch'+(i+1)+'.xhtml"/></navPoint>').join('');
   zip.file('OEBPS/toc.ncx','<?xml version="1.0" encoding="utf-8"?><ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1"><head><meta name="dtb:uid" content="'+id+'"/></head><docTitle><text>'+esc(title)+'</text></docTitle><navMap>'+pts+'</navMap></ncx>');
-  const man=S.chapters.map((c,i)=>'<item id="c'+(i+1)+'" href="text/ch'+(i+1)+'.xhtml" media-type="application/xhtml+xml"/>').join('')
+  const man=B.chapters.map((c,i)=>'<item id="c'+(i+1)+'" href="text/ch'+(i+1)+'.xhtml" media-type="application/xhtml+xml"/>').join('')
     +imgs.map((x,i)=>'<item id="i'+(i+1)+'" href="images/'+x.name+'" media-type="'+x.mime+'"/>').join('');
-  const spine=(m.tocPage?'<itemref idref="nav"/>':'')+S.chapters.map((c,i)=>'<itemref idref="c'+(i+1)+'"/>').join('');
+  const spine=(m.tocPage?'<itemref idref="nav"/>':'')+B.chapters.map((c,i)=>'<itemref idref="c'+(i+1)+'"/>').join('');
   zip.file('OEBPS/content.opf','<?xml version="1.0" encoding="utf-8"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="uid"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:identifier id="uid">'+id+'</dc:identifier><dc:title>'+esc(title)+'</dc:title><dc:language>'+esc(lang)+'</dc:language>'
     +(m.author?'<dc:creator>'+esc(m.author)+'</dc:creator>':'')+(m.desc?'<dc:description>'+esc(m.desc)+'</dc:description>':'')+(m.pub?'<dc:publisher>'+esc(m.pub)+'</dc:publisher>':'')
     +'<meta property="dcterms:modified">'+new Date().toISOString().replace(/\.\d+Z$/,'Z')+'</meta>'+coverMeta+'</metadata><manifest><item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/><item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/><item id="css" href="style.css" media-type="text/css"/>'+coverItem+man+'</manifest><spine toc="ncx">'+spine+'</spine></package>');
-  const blob=await zip.generateAsync({type:'blob',mimeType:'application/epub+zip'});
-  dl(blob,slug()+'.epub');msg('Đã xuất '+slug()+'.epub');
+  return zip.generateAsync({type:'blob',mimeType:'application/epub+zip'});
+}
+$('#bExp').onclick=async()=>{syncOut();persist();const blob=await buildEpub(S);if(blob&&await dl(blob,slug()+'.epub'))msg('Đã xuất '+slug()+'.epub')};
+
+// Kệ sách trên Supabase
+// >>> Dán 2 giá trị lấy từ Supabase (Project Settings -> API) vào đây:
+const SB_URL='https://topbjzzygpsfchqpxepm.supabase.co';
+const SB_KEY='sb_publishable_MM_YksiOIgC_Xi8u6sqi7w_AQQ81fZe';
+// <<<
+const sb=(/^https:\/\/.+\.supabase\.co\/?$/.test(SB_URL)&&SB_KEY.length>20&&window.supabase)?supabase.createClient(SB_URL,SB_KEY):null;
+let user=null,mine=[],pub=[],tab='mine';
+const nameOf=u=>(u.user_metadata&&u.user_metadata.name)||(u.email||'').split('@')[0];
+const fmtD=t=>t?new Date(t).toLocaleDateString('vi-VN'):'';
+const COLS='id,owner,owner_name,title,author,chapters,is_public,updated_at';
+function btn(t,fn){const b=document.createElement('button');b.textContent=t;b.onclick=fn;return b}
+function updateAuth(){
+  $('#bAuth').textContent=user?nameOf(user):'Đăng nhập';
+  $('#authIn').hidden=!!user;$('#authOut').hidden=!user;
+  if(user)$('#aWho').textContent='Đang đăng nhập: '+user.email;
+}
+async function refresh(){
+  if(sb){
+    try{
+      const q2=await sb.from('books').select(COLS).eq('is_public',true).order('updated_at',{ascending:false});
+      pub=q2.data||[];
+      if(user){const q1=await sb.from('books').select(COLS).eq('owner',user.id).order('updated_at',{ascending:false});mine=q1.data||[]}else mine=[];
+      if(q2.error)throw q2.error;
+    }catch(e){msg('Không tải được kệ sách.')}
+  }
+  if($('#dShelf').open)renderShelf();
+}
+function renderShelf(){
+  const box=$('#shelf');box.innerHTML='';
+  $('#kMine').className=tab==='mine'?'on':'';$('#kPub').className=tab==='pub'?'on':'';
+  if(!sb){box.textContent='Kệ sách chưa được cấu hình (thiếu thông tin Supabase trong trang).';return}
+  if(tab==='mine'&&!user){box.textContent='Hãy đăng nhập (nút ở thanh trên cùng) để dùng kệ riêng.';return}
+  const list=tab==='mine'?mine:pub;
+  if(!list.length){box.textContent=tab==='mine'?'Kệ của bạn còn trống. Soạn xong thì bấm "Lưu lên kệ".':'Chưa có sách công khai nào.';return}
+  list.forEach(b=>{
+    const d=document.createElement('div');d.className='bk';
+    d.innerHTML='<div><b></b><br><small></small></div><div class="row"></div>';
+    d.querySelector('b').textContent=b.title||'Chưa đặt tên';
+    d.querySelector('small').textContent=[b.author,(b.chapters||0)+' chương','cập nhật '+fmtD(b.updated_at),tab==='mine'&&b.is_public?'đang công khai':'',tab==='pub'?'của '+(b.owner_name||'ẩn danh'):''].filter(Boolean).join(' · ');
+    const r=d.querySelector('.row');
+    const get=async()=>{const q=await sb.from('books').select('data').eq('id',b.id).single();if(q.error)throw q.error;return q.data.data};
+    r.appendChild(btn(tab==='mine'?'Mở để sửa':'Mở bản sao',async()=>{
+      try{const x=await get();S=x;if(tab==='mine')S.shelfId=b.id;else delete S.shelfId;S.cur=0;ensureIds();show();persist();$('#dShelf').close();msg('Đã mở "'+(b.title||'sách')+'".')}catch(e){msg('Không mở được sách này.')}
+    }));
+    r.appendChild(btn('Tải EPUB',async()=>{
+      msg('Đang tạo EPUB…');
+      try{const x=await get();const blob=await buildEpub(x);if(blob&&dl(blob,slug(x.meta.title||b.title)+'.epub'))msg('Đã tải EPUB.')}catch(e){msg('Không tạo được EPUB.')}
+    }));
+    if(tab==='mine'){
+      r.appendChild(btn(b.is_public?'Bỏ công khai':'Công khai',async()=>{
+        const q=await sb.from('books').update({is_public:!b.is_public}).eq('id',b.id);
+        if(q.error)msg('Không đổi được chế độ công khai.');await refresh();
+      }));
+      const del=btn('Xóa',async()=>{
+        if(!del.dataset.arm){del.dataset.arm=1;del.textContent='Bấm lần nữa để xóa';setTimeout(()=>{delete del.dataset.arm;del.textContent='Xóa'},3500);return}
+        const q=await sb.from('books').delete().eq('id',b.id);
+        if(q.error)msg('Không xóa được.');else if(S.shelfId===b.id){delete S.shelfId;persist()}
+        await refresh();
+      });
+      r.appendChild(del);
+    }
+    box.appendChild(d);
+  });
+}
+$('#kMine').onclick=()=>{tab='mine';renderShelf()};
+$('#kPub').onclick=()=>{tab='pub';renderShelf()};
+$('#bShelf').onclick=async()=>{await refresh();renderShelf();$('#dShelf').showModal()};
+$('#bAuth').onclick=()=>{$('#aMsg').textContent='';updateAuth();$('#dAuth').showModal()};
+async function auth(kind){
+  if(!sb){$('#aMsg').textContent='Trang chưa được cấu hình Supabase.';return}
+  const email=$('#aEmail').value.trim(),password=$('#aPass').value;
+  if(!email||password.length<6){$('#aMsg').textContent='Nhập email và mật khẩu từ 6 ký tự.';return}
+  $('#aMsg').textContent='Đang xử lý…';
+  const r=kind==='up'?await sb.auth.signUp({email,password,options:{data:{name:$('#aName').value.trim()}}}):await sb.auth.signInWithPassword({email,password});
+  if(r.error){$('#aMsg').textContent=r.error.message;return}
+  if(kind==='up'&&!r.data.session){$('#aMsg').textContent='Hãy mở email và bấm link xác nhận, rồi quay lại đăng nhập.';return}
+  $('#aPass').value='';$('#dAuth').close();msg('Đã đăng nhập.');
+}
+$('#aIn').onclick=()=>auth('in');
+$('#aUp').onclick=()=>auth('up');
+$('#aOut').onclick=async()=>{await sb.auth.signOut();$('#dAuth').close();msg('Đã đăng xuất.')};
+$('#bShelfSave').onclick=async()=>{
+  if(!sb)return msg('Kệ sách chưa được cấu hình.');
+  if(!user){$('#aMsg').textContent='Hãy đăng nhập để lưu lên kệ.';$('#dAuth').showModal();return}
+  syncOut();persist();
+  const b0=$('#bShelfSave');b0.disabled=true;msg('Đang lưu lên kệ…');
+  try{
+    const d=JSON.parse(JSON.stringify(S));delete d.shelfId;
+    const row={title:d.meta.title||d.chapters[0].title||'Chưa đặt tên',author:d.meta.author||'',chapters:d.chapters.length,data:d,owner_name:nameOf(user),updated_at:new Date().toISOString()};
+    let id=null;
+    if(S.shelfId){const q=await sb.from('books').update(row).eq('id',S.shelfId).select('id');if(q.error)throw q.error;if(q.data&&q.data.length)id=S.shelfId}
+    if(!id){const q=await sb.from('books').insert(row).select('id').single();if(q.error)throw q.error;id=q.data.id}
+    S.shelfId=id;persist();await refresh();msg('Đã lưu "'+row.title+'" lên kệ của bạn.');
+  }catch(e){msg('Không lưu được lên kệ.')}
+  b0.disabled=false;
 };
+if(sb){
+  sb.auth.getSession().then(r=>{user=(r.data.session&&r.data.session.user)||null;updateAuth();refresh()});
+  sb.auth.onAuthStateChange((_e,sess)=>{user=(sess&&sess.user)||null;updateAuth();setTimeout(refresh,0)});
+}else refresh();
 show();
 </script>
 </body>
