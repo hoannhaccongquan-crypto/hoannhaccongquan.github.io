@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="vi" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&display=swap">
+<link rel="stylesheet" href="site.css">
+<title>Tài khoản · Hoan Nhạc Công Quán</title>
+<style>
+.banner{height:clamp(120px,22vw,200px);border-radius:16px;background:linear-gradient(135deg,#3f6b4a,#8a6a43) center/cover no-repeat}
+.head2{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap;margin:-44px 18px 0;position:relative}
+.head2>div{padding-top:52px}
+.avbig{width:96px;height:96px;border-radius:50%;border:4px solid var(--bg);display:grid;place-items:center;font:700 38px var(--gothic);color:#fff;overflow:hidden;flex-shrink:0}
+.avbig img{width:100%;height:100%;object-fit:cover}
+.head2 h1{margin:0;font:700 clamp(26px,4vw,36px)/1.1 var(--gothic)}
+.un{color:var(--acc);font-weight:600}
+.mu{color:var(--mute);font-size:14px}
+.links{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
+.links .btn{padding:9px 16px;font-size:14px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:26px}
+@media (max-width:860px){.two{grid-template-columns:1fr}}
+.box{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;display:grid;gap:12px;align-content:start}
+.box h2{margin:0;font:700 22px var(--gothic)}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.cal div{display:grid;place-items:center;min-height:36px;border-radius:8px;background:var(--bg);font-size:13px}
+.cal .hd{background:none;color:var(--mute);font-weight:600;min-height:22px}
+.cal .on{background:var(--acc);color:#fff;font-weight:700}
+:root:not([data-theme="light"]) .cal .on{color:#0b1a10}
+.cal .today{outline:2px solid var(--ink);outline-offset:-2px}
+.calnav{display:flex;justify-content:space-between;align-items:center}
+.calnav button,.st button{padding:7px 14px;border:1px solid var(--line);border-radius:10px;background:var(--chip);font-weight:600}
+.st{display:grid;gap:8px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+.st input[type=text],.st input[type=email]{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:9px 11px;color:var(--ink);width:100%}
+.st .r{display:flex;gap:8px;flex-wrap:wrap}
+.mut{color:var(--mute);font-size:14px}
+.err{color:var(--danger);font-size:14px;min-height:18px}
+.gobig{width:100%;padding:12px;border-radius:12px;border:0;background:var(--acc);color:#fff;font-weight:700;font-size:16px}
+:root:not([data-theme="light"]) .gobig{color:#0b1a10}
+.gobig:disabled{opacity:.55;cursor:default}
+</style>
+</head>
+<body data-page="account">
+<main class="page"><section class="sec" id="root"><div class="empty" style="grid-column:auto">Đang tải…</div></section></main>
+<footer><b>Hoan Nhạc Công Quán</b><br>Dự án phi lợi nhuận. 💎 chỉ dùng để trao đổi trong trang, không quy đổi ra tiền.</footer>
+<input type="file" id="fAv" accept="image/*" hidden>
+<input type="file" id="fCv" accept="image/*" hidden>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="site.js"></script>
+<script>
+const sb=HN.sb,$=HN.$;
+let prof={},ck=new Set(),ckOk=true,view=new Date();
+const p2=n=>String(n).padStart(2,'0');
+const ymd=d=>d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());
+const todayVN=()=>new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Ho_Chi_Minh'});
+function streak(){
+  const t=todayVN().split('-'),d=new Date(+t[0],+t[1]-1,+t[2]);
+  if(!ck.has(ymd(d)))d.setDate(d.getDate()-1);
+  let n=0;while(ck.has(ymd(d))){n++;d.setDate(d.getDate()-1)}return n;
+}
+const nextReward=()=>(streak()+1)%5===0?50:10;
+const avHue=u=>{const n=parseInt(u,10)||0;return n%2?100+n%50:28+n%12};
+
+HN.start(load);
+async function load(){
+  const root=$('#root');
+  if(!HN.isReal()){
+    root.innerHTML='<h1>Tài khoản</h1><div class="empty" style="margin-top:16px">Đăng nhập tài khoản thật để xem hồ sơ, điểm danh và cài đặt.<br><button type="button" class="btn pri" id="goLogin">Đăng nhập / Đăng ký</button></div>';
+    $('#goLogin').onclick=()=>HN.openAuth();return;
+  }
+  let q=await sb.from('profiles').select('name,avatar,cover,gems,is_admin').eq('id',HN.user.id).maybeSingle();
+  if(q.error)q=await sb.from('profiles').select('name,avatar,cover,gems').eq('id',HN.user.id).maybeSingle();
+  prof=q.data||{};
+  const c=await sb.from('checkins').select('day');
+  ckOk=!c.error;ck=new Set((c.data||[]).map(r=>r.day));
+  build();
+}
+function build(){
+  const md=HN.user.user_metadata||{},root=$('#root');
+  root.innerHTML=
+  '<div class="banner" id="bn"></div>'+
+  '<div class="head2"><span class="avbig" id="av"></span><div style="min-width:0"><h1 id="nm"></h1><div class="un" id="un"></div><div class="mu" id="uid"></div><div id="gm" style="font-weight:700"></div></div>'+
+  '<div class="links"><a class="btn" href="thu-vien.html#private">📚 Kệ của tôi</a><a class="btn" href="cho.html#mine">🏪 Cửa hàng của tôi</a><a class="btn" id="adm" href="editor.html#admin" hidden>🛡 Quản trị</a></div></div>'+
+  '<div class="two">'+
+   '<section class="box"><h2>Bảng điểm danh</h2><div class="calnav"><button type="button" id="pv" aria-label="Tháng trước">‹</button><b id="ct"></b><button type="button" id="nx" aria-label="Tháng sau">›</button></div><div class="cal" id="cal"></div><div class="mut" id="cs"></div><button type="button" class="gobig" id="go">Điểm danh hôm nay</button></section>'+
+   '<section class="box"><h2>Cài đặt</h2>'+
+    '<div class="st"><b>Ảnh đại diện</b><div class="r"><button type="button" id="sa">Chọn ảnh</button><button type="button" id="sad">Xóa ảnh</button></div></div>'+
+    '<div class="st"><b>Ảnh nền</b><div class="r"><button type="button" id="sc">Chọn ảnh</button><button type="button" id="scd">Xóa ảnh</button></div></div>'+
+    '<div class="st"><b>Name (tên hiển thị)</b><input type="text" id="sn" maxlength="40"><div class="r"><button type="button" id="snb">Lưu name</button></div></div>'+
+    '<div class="st"><b>Email</b><input type="email" id="se"><div class="r"><button type="button" id="seb">Đổi email</button></div></div>'+
+    '<div class="err" id="sm"></div>'+
+    '<button type="button" id="so" style="padding:11px;border-radius:12px;border:1px solid var(--line);background:none;color:var(--danger);font-weight:700">Đăng xuất</button>'+
+   '</section></div>';
+  paintHead(md);
+  $('#adm').hidden=!prof.is_admin;
+  $('#sn').value=HN.nameOf(HN.user);$('#se').value=HN.user.email||'';
+  $('#pv').onclick=()=>{view=new Date(view.getFullYear(),view.getMonth()-1,1);cal()};
+  $('#nx').onclick=()=>{view=new Date(view.getFullYear(),view.getMonth()+1,1);cal()};
+  $('#go').onclick=claim;
+  $('#sa').onclick=()=>$('#fAv').click();$('#sc').onclick=()=>$('#fCv').click();
+  $('#sad').onclick=()=>save({avatar:null},'Đã xóa ảnh đại diện.');
+  $('#scd').onclick=()=>save({cover:null},'Đã xóa ảnh nền.');
+  $('#snb').onclick=saveName;$('#seb').onclick=saveMail;
+  $('#so').onclick=async()=>{await HN.signOut();location.href='index.html'};
+  cal();
+}
+function paintHead(md){
+  $('#nm').textContent=HN.nameOf(HN.user);
+  $('#un').textContent=md.username?'@'+md.username:'';
+  $('#uid').textContent='UID: '+(md.uid||'—');
+  $('#gm').textContent='💎 '+(prof.gems||0)+(prof.is_admin?'  ·  🛡 Quản trị viên':'');
+  $('#bn').style.backgroundImage=prof.cover?'url("'+prof.cover+'")':'';
+  const a=$('#av');a.textContent='';a.style.background='hsl('+avHue(md.uid)+' 38% 36%)';
+  if(prof.avatar){const im=document.createElement('img');im.src=prof.avatar;im.alt='';a.appendChild(im)}else a.textContent=(HN.nameOf(HN.user)[0]||'?').toUpperCase();
+}
+function cal(){
+  const y=view.getFullYear(),m=view.getMonth(),box=$('#cal'),today=todayVN();
+  box.textContent='';$('#ct').textContent='Tháng '+(m+1)+'/'+y;
+  ['T2','T3','T4','T5','T6','T7','CN'].forEach(t=>{const h=document.createElement('div');h.className='hd';h.textContent=t;box.appendChild(h)});
+  const off=(new Date(y,m,1).getDay()+6)%7,days=new Date(y,m+1,0).getDate();
+  for(let i=0;i<off;i++)box.appendChild(document.createElement('div'));
+  let cnt=0;
+  for(let d=1;d<=days;d++){
+    const key=y+'-'+p2(m+1)+'-'+p2(d),c=document.createElement('div');c.textContent=d;
+    if(ck.has(key)){c.className='on';c.textContent=d+'✓';cnt++}
+    if(key===today)c.classList.add('today');
+    box.appendChild(c);
+  }
+  $('#cs').textContent=ckOk?'Chuỗi liên tiếp: '+streak()+' ngày · Tháng này: '+cnt+' ngày · Lần tới: +'+nextReward()+'💎 (ngày thứ 5, 10, 15 của chuỗi nhận gấp 5)':'Bảng điểm danh chưa sẵn sàng (cần chạy SQL trong Supabase).';
+  $('#go').disabled=!ckOk||ck.has(today);
+  $('#go').textContent=ck.has(today)?'Hôm nay đã điểm danh ✓':'Điểm danh hôm nay (+'+nextReward()+'💎)';
+}
+async function claim(){
+  const q=await sb.rpc('claim_checkin');
+  if(q.error){HN.msg('Không điểm danh được: '+q.error.message,6000);return}
+  const r=q.data||{};
+  if(!r.ok){HN.msg('Hôm nay bạn đã điểm danh rồi.');await load();return}
+  view=new Date();await HN.reloadMe();await load();
+  HN.msg('Điểm danh liên tục ngày thứ '+r.n+': +'+r.reward+'💎'+(r.reward>=50?' (gấp 5!)':''),6000);
+}
+const sm=(t,ok)=>{const e=$('#sm');e.style.color=ok?'var(--mute)':'var(--danger)';e.textContent=t};
+function fit(file,w,h,q){
+  return new Promise((res,rej)=>{
+    const img=new Image(),url=URL.createObjectURL(file);
+    img.onload=()=>{const c=document.createElement('canvas');c.width=w;c.height=h;
+      const r=Math.max(w/img.width,h/img.height),dw=img.width*r,dh=img.height*r;
+      c.getContext('2d').drawImage(img,(w-dw)/2,(h-dh)/2,dw,dh);URL.revokeObjectURL(url);res(c.toDataURL('image/jpeg',q))};
+    img.onerror=()=>{URL.revokeObjectURL(url);rej(new Error('img'))};img.src=url;
+  });
+}
+async function save(patch,ok){
+  const q=await sb.from('profiles').update(patch).eq('id',HN.user.id);
+  if(q.error){sm('Không lưu được. Bạn đã chạy SQL trong Supabase chưa?');return}
+  prof=Object.assign({},prof,patch);paintHead(HN.user.user_metadata||{});await HN.reloadMe();sm(ok||'Đã lưu.',true);
+}
+document.addEventListener('change',async e=>{
+  if(e.target.id!=='fAv'&&e.target.id!=='fCv')return;
+  const f=e.target.files[0];e.target.value='';if(!f)return;
+  try{
+    if(e.target.id==='fAv')await save({avatar:await fit(f,256,256,.85)},'Đã đổi ảnh đại diện.');
+    else await save({cover:await fit(f,960,320,.8)},'Đã đổi ảnh nền.');
+  }catch(x){sm('Không đọc được ảnh này.')}
+});
+async function saveName(){
+  const n=$('#sn').value.trim();
+  if(!n||n.length>40)return sm('Name không được để trống và tối đa 40 ký tự.');
+  const r=await sb.auth.updateUser({data:{name:n}});
+  if(r.error)return sm(r.error.message);
+  sb.from('profiles').update({name:n}).eq('id',HN.user.id).then(()=>{});
+  sb.from('books').update({owner_name:n}).eq('owner',HN.user.id).then(()=>{});
+  await HN.reloadMe();paintHead(HN.user.user_metadata||{});sm('Đã đổi name.',true);
+}
+async function saveMail(){
+  const m=$('#se').value.trim();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(m))return sm('Email không hợp lệ.');
+  if(m.toLowerCase()===(HN.user.email||'').toLowerCase())return sm('Email này đang được dùng.');
+  const r=await sb.auth.updateUser({email:m});
+  if(r.error)return sm(r.error.message);
+  sm('Đã gửi yêu cầu đổi email. Nếu được yêu cầu xác nhận, hãy kiểm tra hộp thư (email mới, có thể cả email cũ) và bấm liên kết.',true);
+}
+</script>
+</body>
+</html>
