@@ -1,0 +1,105 @@
+/* ===== Hoan Nhạc Công Quán: giao diện dùng chung (xanh lá, nâu be, phông Lora) ===== */
+:root{
+  --bg:#0d1a12;--ink:#f1ead6;--mute:#b8b49b;--card:#15251b;--line:#2b4032;
+  --acc:#7cc08a;--brown:#c9a977;--chip:#ffffff14;--pill:#0b1a11cc;--danger:#e58a76;
+  --font:"Lora",Georgia,serif;--gothic:"Lora",Georgia,serif;
+}
+:root[data-theme="light"]{
+  --bg:#f1e8d3;--ink:#2a2a1c;--mute:#6c6850;--card:#faf3e1;--line:#d8cba8;
+  --acc:#3f6b4a;--brown:#8a6a43;--chip:#00000010;--pill:#faf3e1dd;--danger:#a8321f;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:90px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 var(--font);-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+[hidden]{display:none!important}
+
+/* thanh điều hướng */
+.nav{position:fixed;inset:0 0 auto 0;z-index:20;display:flex;justify-content:space-between;gap:12px;padding:calc(14px + env(safe-area-inset-top)) clamp(12px,3vw,34px) 0;pointer-events:none}
+.pill{pointer-events:auto;display:flex;align-items:center;gap:4px;padding:6px;border-radius:999px;background:var(--pill);border:1px solid #ffffff1f;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 8px 30px #0008}
+:root[data-theme="light"] .pill{border-color:#0000001a;box-shadow:0 8px 24px #2b3a1f33}
+.pill a,.pill button{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border:0;border-radius:999px;background:none;font-weight:600;font-size:15px;color:var(--ink);white-space:nowrap}
+.pill a:hover,.pill button:hover,.pill a.on{background:var(--chip)}
+.pill .ic{width:40px;height:40px;padding:0;justify-content:center;background:var(--chip)}
+.pill svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.pill .av{width:42px;height:42px;padding:0;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#3f7a4d,#173222);border:2px solid #ffffff55;display:grid;place-items:center;font-weight:700;color:#fff}
+.pill .av img{width:100%;height:100%;object-fit:cover}
+#hn-q{width:min(240px,40vw);border:0;border-radius:999px;background:var(--chip);color:var(--ink);padding:9px 14px}
+#hn-q::placeholder{color:var(--mute)}
+.gem{font-weight:700;padding:0 8px;font-size:14px}
+.pop{position:absolute;right:clamp(12px,3vw,34px);top:calc(74px + env(safe-area-inset-top));width:min(300px,86vw);background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 14px 40px #000a;pointer-events:auto}
+.pop .mh{display:grid;gap:2px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.pop .mh small{color:var(--mute)}
+.pop a,.pop button.mi{display:block;width:100%;text-align:left;padding:10px 12px;border:0;border-radius:10px;background:none;font-weight:600}
+.pop a:hover,.pop button.mi:hover{background:var(--chip)}
+@media (max-width:760px){.pill .tx{display:none}}
+
+/* ngăn kéo menu */
+#hn-drawer{position:fixed;inset:0;z-index:40;background:#000a}
+#hn-drawer nav{width:min(300px,84vw);height:100%;background:var(--card);padding:calc(24px + env(safe-area-inset-top)) 18px 18px;display:flex;flex-direction:column;gap:4px;border-right:1px solid var(--line)}
+#hn-drawer a{padding:12px 14px;border-radius:10px;font-weight:600}
+#hn-drawer a:hover{background:var(--chip)}
+#hn-drawer .t{font:700 24px var(--gothic);margin:0 0 10px 14px}
+
+/* bố cục trang */
+.page{padding-top:104px;min-height:100svh}
+.sec{max-width:1180px;margin:0 auto;padding:60px clamp(16px,4vw,36px) 10px}
+.page .sec{padding-top:24px}
+.sec h1,.sec h2{margin:0 0 6px;font:700 clamp(30px,5vw,46px)/1.1 var(--gothic)}
+.sec .lead{margin:0 0 20px;color:var(--mute)}
+.head{display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap}
+.more{font-weight:600;color:var(--acc)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 18px}
+.tabs button{padding:9px 18px;border-radius:999px;border:1px solid var(--line);background:none;font-weight:600}
+.tabs button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+:root:not([data-theme="light"]) .tabs button.on{color:#0b1a10}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:18px}
+.card{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;transition:transform .2s,box-shadow .2s;text-align:left;padding:0;color:inherit}
+a.card:hover,button.card:hover,.card.click:hover{transform:translateY(-4px);box-shadow:0 14px 34px #0006}
+.card.click{cursor:pointer}
+.cv{aspect-ratio:2/3;background:linear-gradient(160deg,#2f5a3c,#10241a);display:grid;place-items:center;padding:12px;text-align:center;font:700 21px/1.15 var(--gothic);color:#f1ead6;overflow:hidden}
+.cv img{width:100%;height:100%;object-fit:cover}
+.cb{padding:12px 13px 10px;display:grid;gap:3px}
+.cb b{font-size:15px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.cb small{color:var(--mute)}
+.cb .ds{font-size:13px;color:var(--mute);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.price{font-weight:700;color:var(--brown)}
+.act{display:flex;flex-wrap:wrap;gap:6px;padding:0 12px 12px;margin-top:auto}
+.act button,.act a{padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--chip);font-size:13px;font-weight:600}
+.act button:hover,.act a:hover{border-color:var(--acc)}
+.act .pri{background:var(--acc);border-color:var(--acc);color:#fff}
+.act .bad{color:var(--danger)}
+.empty{grid-column:1/-1;padding:28px;border:1px dashed var(--line);border-radius:14px;color:var(--mute);text-align:center}
+.empty .btn{margin-top:12px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:999px;font-weight:700;border:1px solid var(--line);background:var(--chip);transition:.2s}
+.btn:hover{border-color:var(--acc)}
+.btn.pri{background:linear-gradient(135deg,#4f8a5a,#2f5a3c);border-color:#b6dcaaaa;color:#fff;box-shadow:0 8px 24px #2f5a3c66}
+.btn.pri:hover{filter:brightness(1.1)}
+footer{margin-top:80px;padding:34px 16px calc(34px + env(safe-area-inset-bottom));text-align:center;color:var(--mute);border-top:1px solid var(--line)}
+footer b{font:700 22px var(--gothic);color:var(--ink)}
+
+/* hộp thoại, biểu mẫu */
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);padding:0;width:min(480px,94vw)}
+dialog::backdrop{background:#000a}
+dialog form,dialog .dlg{padding:22px;display:grid;gap:12px}
+dialog h2{margin:0;font:700 22px var(--gothic)}
+dialog label{display:grid;gap:4px;color:var(--mute);font-size:14px}
+dialog input,dialog textarea,dialog select{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px;color:var(--ink)}
+dialog .row{display:flex;gap:8px;justify-content:flex-end;align-items:center;flex-wrap:wrap}
+dialog button{padding:9px 16px;border-radius:10px;border:1px solid var(--line);background:var(--chip);font-weight:600}
+dialog button.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+.xbtn{position:absolute;top:8px;right:10px;border:0!important;background:none!important;font-size:20px;line-height:1;padding:4px 8px!important;color:var(--mute)}
+.atbl{width:100%;border-collapse:collapse;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+.atbl th{width:96px;text-align:left;padding:10px 12px;color:var(--mute);font-weight:600;border-bottom:1px solid var(--line);font-size:14px}
+.atbl td{padding:6px 8px;border-bottom:1px solid var(--line)}
+.atbl tr:last-child th,.atbl tr:last-child td{border-bottom:0}
+.atbl input{width:100%}
+.amsg{min-height:18px;color:var(--danger);font-size:13px}
+#hn-toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;max-width:min(520px,92vw);background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:999px;font-weight:600;box-shadow:0 10px 30px #0008;text-align:center}
+.det{display:grid;grid-template-columns:140px 1fr;gap:16px}
+.det .cv{border-radius:10px;font-size:16px}
+@media (max-width:520px){.det{grid-template-columns:1fr}.det .cv{max-width:160px}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.card{transition:none}}

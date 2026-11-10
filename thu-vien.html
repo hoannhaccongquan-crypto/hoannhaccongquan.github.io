@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="vi" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&display=swap">
+<link rel="stylesheet" href="site.css">
+<title>Thư Viện · Hoan Nhạc Công Quán</title>
+</head>
+<body data-page="library">
+<main class="page">
+  <section class="sec">
+    <h1>Thư Viện</h1>
+    <p class="lead" id="lead"></p>
+    <div class="tabs"><button type="button" id="tPub">Công khai</button><button type="button" id="tPriv">Riêng tư</button></div>
+    <div class="grid" id="grid"><div class="empty">Đang tải…</div></div>
+  </section>
+</main>
+<footer><b>Hoan Nhạc Công Quán</b><br>Dự án phi lợi nhuận. 💎 chỉ dùng để trao đổi trong trang, không quy đổi ra tiền.</footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="site.js"></script>
+<script>
+const sb=HN.sb;
+let tab=location.hash==='#private'?'priv':'pub',pub=[],mine=[],mk=[];
+HN.start(load);
+document.getElementById('tPub').onclick=()=>{tab='pub';history.replaceState(null,'',location.pathname);render()};
+document.getElementById('tPriv').onclick=()=>{tab='priv';history.replaceState(null,'','#private');render()};
+async function load(){
+  if(!sb){render();return}
+  const a=await sb.from('public_books').select('id,owner,owner_name,title,author,chapters,description,cover,updated_at').order('updated_at',{ascending:false}).limit(300);
+  pub=a.error?[]:a.data;mine=[];mk=[];
+  if(HN.user){
+    const m=await sb.from('books').select('id,title,author,chapters,is_public,updated_at,description,cover,acquired').order('updated_at',{ascending:false}).limit(300);
+    mine=m.error?[]:m.data;
+    if(HN.isReal()){const q=await sb.from('market').select('id,book_id,price,sold,description').eq('seller',HN.user.id).eq('active',true);mk=q.error?[]:q.data}
+  }
+  render();
+}
+function empty(box,text,btnLabel,fn){
+  const e=document.createElement('div');e.className='empty';e.textContent=text;
+  if(btnLabel){e.appendChild(document.createElement('br'));const b=document.createElement('button');b.className='btn pri';b.type='button';b.textContent=btnLabel;b.onclick=fn;e.appendChild(b)}
+  box.appendChild(e);
+}
+async function reload(){await HN.reloadMe();load()}
+function render(){
+  const guest=HN.user&&HN.isGuest();
+  document.getElementById('tPub').className=tab==='pub'?'on':'';
+  document.getElementById('tPriv').className=tab==='priv'?'on':'';
+  document.getElementById('tPriv').textContent=guest?'Kệ tạm':'Riêng tư';
+  document.getElementById('lead').textContent=tab==='pub'
+    ?'Kệ công khai: mọi người xem được ảnh bìa, thông tin và lời giới thiệu. File EPUB được bán ở Chợ Trao Đổi.'
+    :(guest?'Kệ tạm của khách: sách chỉ được giữ khoảng 1 đến 3 ngày và có thể bị mất. Đăng nhập để lưu lâu dài.':'Kệ riêng tư: chỉ mình bạn thấy. Mở để sửa, đưa lên kệ công khai hoặc đăng bán ở chợ.');
+  const box=document.getElementById('grid');box.textContent='';
+  if(tab==='pub'){
+    if(!pub.length)return empty(box,'Chưa có truyện công khai nào.');
+    pub.forEach(b=>box.appendChild(HN.card({onclick:()=>HN.showBook(b),cover:b.cover,title:b.title||'Chưa đặt tên',
+      sub:[b.author,(b.chapters||0)+' chương','bởi '+(b.owner_name||'ẩn danh')].filter(Boolean).join(' · '),desc:b.description,search:(b.title||'')+' '+(b.author||'')+' '+(b.owner_name||'')})));
+  }else{
+    if(!HN.user)return empty(box,'Đăng nhập để xem kệ riêng tư của bạn.','Đăng nhập / Đăng ký',()=>HN.openAuth());
+    if(!mine.length)return empty(box,'Kệ còn trống. Vào Xưởng Soạn để viết truyện và bấm "Lưu lên kệ".','Mở Xưởng Soạn',()=>{location.href='editor.html'});
+    mine.forEach(b=>{
+      const l=mk.find(x=>x.book_id===b.id),real=HN.isReal();
+      const acts=[{label:'Mở để sửa',href:'editor.html#edit='+b.id,cls:'pri'}];
+      if(real&&!b.acquired){
+        acts.push({label:b.is_public?'Bỏ công khai':'Công khai',fn:async()=>{
+          const q=await sb.from('books').update({is_public:!b.is_public}).eq('id',b.id);
+          if(q.error)HN.msg('Không đổi được chế độ công khai.');else HN.msg(b.is_public?'Đã bỏ công khai.':'Đã đưa lên kệ công khai.');
+          load();
+        }});
+        acts.push({label:l?'Đổi giá':'Đăng bán 💎',fn:()=>HN.openSell(b,l,load)});
+        if(l)acts.push(HN.confirmAct('Gỡ bán','Bấm lần nữa',async()=>{const q=await sb.rpc('unlist_item',{p_item:l.id});if(q.error)HN.msg(q.error.message);load()}));
+      }
+      acts.push(HN.confirmAct('Xóa','Bấm lần nữa để xóa',async()=>{const q=await sb.from('books').delete().eq('id',b.id);if(q.error)HN.msg('Không xóa được.');load()}));
+      box.appendChild(HN.card({cover:b.cover,title:b.title||'Chưa đặt tên',
+        sub:[b.author,(b.chapters||0)+' chương','cập nhật '+HN.fmtD(b.updated_at),b.is_public?'đang công khai':'',b.acquired?'đã mua từ chợ':'',l?'đang bán 💎 '+l.price:''].filter(Boolean).join(' · '),
+        desc:b.description,search:(b.title||'')+' '+(b.author||''),actions:acts}));
+    });
+  }
+  HN.filter();
+}
+</script>
+</body>
+</html>

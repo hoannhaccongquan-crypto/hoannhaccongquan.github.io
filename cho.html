@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="vi" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&display=swap">
+<link rel="stylesheet" href="site.css">
+<title>Chợ Trao Đổi · Hoan Nhạc Công Quán</title>
+</head>
+<body data-page="market">
+<main class="page">
+  <section class="sec">
+    <h1>Chợ Trao Đổi</h1>
+    <p class="lead">Mua bán file EPUB bằng 💎 (nhận qua điểm danh mỗi ngày, không quy đổi ra tiền). Người mua nhận file EPUB: sách nằm trong Kệ riêng tư và tải EPUB ở Xưởng Soạn. Chỉ đăng truyện do bạn sáng tác hoặc có quyền phân phối.</p>
+    <div class="tabs"><button type="button" id="tAll">Tất cả</button><button type="button" id="tMine">Cửa hàng của tôi</button></div>
+    <div class="grid" id="grid"><div class="empty">Đang tải…</div></div>
+  </section>
+</main>
+<footer><b>Hoan Nhạc Công Quán</b><br>Dự án phi lợi nhuận. 💎 chỉ dùng để trao đổi trong trang, không quy đổi ra tiền.</footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="site.js"></script>
+<script>
+const sb=HN.sb;
+let tab=location.hash==='#mine'?'mine':'all',list=[];
+HN.start(load);
+document.getElementById('tAll').onclick=()=>{tab='all';history.replaceState(null,'',location.pathname);render()};
+document.getElementById('tMine').onclick=()=>{tab='mine';history.replaceState(null,'','#mine');render()};
+async function load(){
+  if(!sb){render();return}
+  const q=await sb.from('market').select('id,seller,seller_name,book_id,title,author,chapters,cover,description,preview,price,sold,active,created_at').eq('active',true).order('created_at',{ascending:false}).limit(300);
+  list=q.error?[]:q.data;render(q.error);
+}
+function empty(box,text,btnLabel,fn){
+  const e=document.createElement('div');e.className='empty';e.textContent=text;
+  if(btnLabel){e.appendChild(document.createElement('br'));const b=document.createElement('button');b.className='btn pri';b.type='button';b.textContent=btnLabel;b.onclick=fn;e.appendChild(b)}
+  box.appendChild(e);
+}
+function preview(m){
+  const d=HN.dialog('hn-prev','<div class="dlg"><h2></h2><small class="pi" style="color:var(--mute)"></small><div class="pt" style="white-space:pre-wrap;max-height:50vh;overflow:auto"></div></div>');
+  d.querySelector('h2').textContent=m.title||'Chưa đặt tên';
+  d.querySelector('.pi').textContent='Đọc thử (đoạn đầu). Mua để nhận đầy đủ file EPUB.';
+  d.querySelector('.pt').textContent=(m.preview||'').trim()||'(Không có bản đọc thử)';
+  d.showModal();
+}
+function render(err){
+  document.getElementById('tAll').className=tab==='all'?'on':'';
+  document.getElementById('tMine').className=tab==='mine'?'on':'';
+  const box=document.getElementById('grid');box.textContent='';
+  if(err)return empty(box,'Chưa tải được chợ. Bạn đã chạy SQL trong Supabase chưa?');
+  const me=HN.user&&HN.user.id;
+  if(tab==='mine'){
+    if(!HN.isReal())return empty(box,'Đăng nhập tài khoản thật để quản lý cửa hàng của bạn.','Đăng nhập / Đăng ký',()=>HN.openAuth());
+  }
+  const rows=list.filter(m=>tab==='all'||m.seller===me);
+  if(!rows.length)return empty(box,tab==='mine'?'Bạn chưa đăng bán cuốn nào. Vào Thư Viện, mục Riêng tư, bấm "Đăng bán 💎" ở cuốn bạn muốn bán.':'Chợ đang trống.',tab==='mine'?'Tới Thư Viện của tôi':null,()=>{location.href='thu-vien.html#private'});
+  rows.forEach(m=>{
+    const own=me&&m.seller===me,acts=[{label:'Đọc thử',fn:()=>preview(m)}];
+    if(own){
+      acts.push({label:'Đổi giá',fn:()=>HN.openSell({id:m.book_id,title:m.title,description:m.description},m,load)});
+      acts.push(HN.confirmAct('Gỡ bán','Bấm lần nữa',async()=>{const q=await sb.rpc('unlist_item',{p_item:m.id});if(q.error)HN.msg(q.error.message);load()}));
+    }else{
+      acts.unshift({label:'Mua',cls:'pri',fn:bt=>{
+        if(!HN.isReal()){HN.msg('Hãy đăng nhập tài khoản thật để mua.');HN.openAuth();return}
+        if(!bt.dataset.arm){bt.dataset.arm=1;bt.textContent='Bấm lần nữa (−'+m.price+'💎)';setTimeout(()=>{delete bt.dataset.arm;bt.textContent='Mua'},3500);return}
+        sb.rpc('buy_item',{p_item:m.id}).then(async q=>{
+          if(q.error){HN.msg(q.error.message,6000);return}
+          HN.msg('Đã mua "'+(m.title||'sách')+'". Sách đã nằm trong Kệ riêng tư của bạn.',6000);
+          await HN.reloadMe();load();
+        });
+      }});
+      acts.push({label:'Báo cáo',cls:'bad',fn:()=>HN.openReport(m)});
+    }
+    box.appendChild(HN.card({cover:m.cover,title:m.title||'Chưa đặt tên',
+      sub:[m.author,(m.chapters||0)+' chương','bán bởi '+(m.seller_name||'ẩn danh'),'đã bán '+m.sold].filter(Boolean).join(' · '),
+      desc:m.description,price:m.price,search:(m.title||'')+' '+(m.author||'')+' '+(m.seller_name||''),actions:acts}));
+  });
+  HN.filter();
+}
+</script>
+</body>
+</html>

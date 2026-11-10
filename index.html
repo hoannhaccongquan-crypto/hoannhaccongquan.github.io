@@ -3,54 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Hoan Nhạc Công Quán</title>
-<meta name="description" content="Hoan Nhạc Công Quán — nơi đọc, soạn và trao đổi những câu chuyện.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&display=swap">
+<link rel="stylesheet" href="site.css">
+<title>Hoan Nhạc Công Quán</title>
+<meta name="description" content="Hoan Nhạc Công Quán: nơi đọc, soạn và trao đổi những câu chuyện.">
 <style>
-:root{
-  --bg:#0d1a12;--ink:#f1ead6;--mute:#b8b49b;--card:#15251b;--line:#2b4032;
-  --acc:#7cc08a;--brown:#c9a977;--chip:#ffffff14;--pill:#0b1a11cc;
-  --font:"Lora",Georgia,serif;
-  --gothic:"Lora",Georgia,serif;
-}
-:root[data-theme="light"]{
-  --bg:#f1e8d3;--ink:#2a2a1c;--mute:#6c6850;--card:#faf3e1;--line:#d8cba8;
-  --acc:#3f6b4a;--brown:#8a6a43;--chip:#00000010;--pill:#faf3e1dd;
-}
-*{box-sizing:border-box}
-html{scroll-behavior:smooth;scroll-padding-top:90px}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 var(--font);-webkit-font-smoothing:antialiased}
-a{color:inherit;text-decoration:none}
-button{font:inherit;color:inherit;cursor:pointer}
-:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
-.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
-
-/* ===== thanh điều hướng ===== */
-.nav{position:fixed;inset:0 0 auto 0;z-index:20;display:flex;justify-content:space-between;gap:12px;padding:calc(14px + env(safe-area-inset-top)) clamp(12px,3vw,34px) 0;pointer-events:none}
-.pill{pointer-events:auto;display:flex;align-items:center;gap:4px;padding:6px;border-radius:999px;background:var(--pill);border:1px solid #ffffff1f;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 8px 30px #0008}
-:root[data-theme="light"] .pill{border-color:#0000001a;box-shadow:0 8px 24px #2b3a1f33}
-.pill a,.pill button{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border:0;border-radius:999px;background:none;font-weight:600;font-size:15px;color:var(--ink);white-space:nowrap}
-.pill a:hover,.pill button:hover{background:var(--chip)}
-.pill .ic{width:40px;height:40px;padding:0;justify-content:center;background:var(--chip)}
-.pill svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.pill .av{width:42px;height:42px;padding:0;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#3f7a4d,#173222);border:2px solid #ffffff55;display:grid;place-items:center;font-weight:700;color:#fff}
-.pill .av img{width:100%;height:100%;object-fit:cover}
-#q{width:min(240px,40vw);border:0;border-radius:999px;background:var(--chip);color:var(--ink);padding:9px 14px;font:inherit}
-#q::placeholder{color:var(--mute)}
-.gem{font-weight:700;padding:0 8px;font-size:14px}
-.pop{position:absolute;right:clamp(12px,3vw,34px);top:calc(74px + env(safe-area-inset-top));width:min(300px,86vw);background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 14px 40px #000a;pointer-events:auto}
-@media (max-width:760px){.pill .tx{display:none}}
-
-/* ===== ngăn kéo menu ===== */
-#drawer{position:fixed;inset:0;z-index:40;background:#000a}
-#drawer[hidden]{display:none}
-#drawer nav{width:min(300px,84vw);height:100%;background:var(--card);padding:calc(24px + env(safe-area-inset-top)) 18px 18px;display:flex;flex-direction:column;gap:4px;border-right:1px solid var(--line)}
-#drawer a{padding:12px 14px;border-radius:10px;font-weight:600}
-#drawer a:hover{background:var(--chip)}
-#drawer .t{font:800 26px var(--gothic);margin:0 0 10px 14px}
-
 /* ===== hero ===== */
 .hero{position:relative;min-height:max(100svh,600px);display:grid;place-items:center;overflow:hidden;color:#f1ead6;text-align:center;padding:110px 16px 110px;isolation:isolate}
 .hero svg.bg{position:absolute;inset:0;width:100%;height:100%;z-index:-3}
@@ -68,69 +27,13 @@ button{font:inherit;color:inherit;cursor:pointer}
 .han{margin:12px 0 0;font:600 clamp(16px,2.6vw,28px) "Noto Serif SC","Songti SC","SimSun",serif;letter-spacing:.6em;color:#e3d6ae;text-shadow:0 2px 14px #000}
 .sub{max-width:560px;margin:18px auto 0;color:#d9ceb0;text-shadow:0 2px 10px #000}
 .cta{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:26px}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:13px 24px;border-radius:999px;font-weight:700;border:1px solid #ffffff55;background:#00000055;backdrop-filter:blur(6px);transition:.2s}
-.btn:hover{background:#ffffff1f}
-.btn.pri{background:linear-gradient(135deg,#4f8a5a,#2f5a3c);border-color:#b6dcaaaa;box-shadow:0 8px 30px #2f5a3c88}
-.btn.pri:hover{filter:brightness(1.12)}
+.hero .btn{padding:13px 24px;border-color:#ffffff55;background:#00000055;color:#f1ead6;backdrop-filter:blur(6px)}
+.hero .btn:hover{background:#ffffff1f}
+.hero .btn.pri{background:linear-gradient(135deg,#4f8a5a,#2f5a3c);border-color:#b6dcaaaa;box-shadow:0 8px 30px #2f5a3c88}
 
-/* ===== các khu ===== */
-.sec{max-width:1180px;margin:0 auto;padding:70px clamp(16px,4vw,36px) 10px}
-.sec h2{margin:0 0 6px;font:800 clamp(30px,5vw,46px)/1.1 var(--gothic)}
-.sec .lead{margin:0 0 24px;color:var(--mute)}
-.head{display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap}
-.more{font-weight:600;color:var(--acc)}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:18px}
-.card{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;transition:transform .2s,box-shadow .2s}
-.card:hover{transform:translateY(-4px);box-shadow:0 14px 34px #0006}
-.cv{aspect-ratio:2/3;background:linear-gradient(160deg,#2f5a3c,#10241a);display:grid;place-items:center;padding:12px;text-align:center;font:800 22px/1.15 var(--gothic);color:#f1ead6;overflow:hidden}
-.cv img{width:100%;height:100%;object-fit:cover}
-.cb{padding:12px 13px 14px;display:grid;gap:3px}
-.cb b{font-size:15px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.cb small{color:var(--mute)}
-.price{font-weight:700;color:var(--brown)}
-.empty{grid-column:1/-1;padding:28px;border:1px dashed var(--line);border-radius:14px;color:var(--mute);text-align:center}
-.feat{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
-.feat div{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
-.feat h3{margin:0 0 6px;font:800 24px var(--gothic)}
-.feat p{margin:0;color:var(--mute)}
-footer{margin-top:80px;padding:34px 16px calc(34px + env(safe-area-inset-bottom));text-align:center;color:var(--mute);border-top:1px solid var(--line)}
-footer b{font:800 22px var(--gothic);color:var(--ink)}
-@media (prefers-reduced-motion:reduce){.ember{display:none}html{scroll-behavior:auto}.card{transition:none}}
 </style>
 </head>
-<body id="top">
-
-<header class="nav">
-  <nav class="pill" aria-label="Điều hướng chính">
-    <button class="ic" id="menuBtn" aria-label="Mở menu"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
-    <a class="ic" href="#top" aria-label="Trang chủ Hoan Nhạc Công Quán"><svg viewBox="0 0 24 24"><path d="M3 9.5 12 4l9 5.5M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/></svg></a>
-    <a class="tx" href="#thu-vien">Thư Viện</a>
-    <a class="tx" href="#cho">Chợ Trao Đổi</a>
-    <a class="tx" href="#xuong">Xưởng Soạn</a>
-    <input id="q" type="search" placeholder="Tìm truyện, tác giả…" aria-label="Tìm kiếm" hidden>
-    <button class="ic" id="searchBtn" aria-label="Tìm kiếm"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></button>
-  </nav>
-  <div class="pill">
-    <button class="ic" id="bell" aria-label="Thông báo"><svg viewBox="0 0 24 24"><path d="M6 17V11a6 6 0 1 1 12 0v6l1.5 2h-15zM10 21h4"/></svg></button>
-    <button class="ic" id="theme" aria-label="Đổi giao diện sáng tối"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4"/></svg></button>
-    <span class="gem" id="gem" hidden></span>
-    <a class="av" id="auth" href="editor.html#login" aria-label="Đăng nhập" title="Đăng nhập"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.6"/><path d="M4.5 20c.9-4 4-5.6 7.5-5.6s6.6 1.6 7.5 5.6"/></svg></a>
-  </div>
-  <div class="pop" id="bellPop" hidden>Chưa có thông báo mới.</div>
-</header>
-
-<aside id="drawer" hidden aria-label="Menu">
-  <nav>
-    <p class="t">Hoan Nhạc Công Quán</p>
-    <a href="#top">Trang chủ</a>
-    <a href="#thu-vien">Thư Viện</a>
-    <a href="#cho">Chợ Trao Đổi</a>
-    <a href="#xuong">Xưởng Soạn</a>
-    <a href="editor.html">Mở Xưởng Soạn EPUB</a>
-    <a href="editor.html#login">Đăng nhập / Đăng ký</a>
-  </nav>
-</aside>
-
+<body data-page="home" id="top">
 <section class="hero">
   <!-- Nền: gian đường vòm nhọn, ánh kính màu đỏ thẫm -->
   <svg class="bg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
@@ -181,20 +84,20 @@ footer b{font:800 22px var(--gothic);color:var(--ink)}
     <p class="han" lang="zh">欢乐公馆</p>
     <p class="sub">Dinh thự của những câu chuyện: đọc truyện, soạn sách EPUB và trao đổi cùng mọi người.</p>
     <div class="cta">
-      <a class="btn pri" href="#thu-vien">Khám phá Thư Viện</a>
+      <a class="btn pri" href="thu-vien.html">Khám phá Thư Viện</a>
       <a class="btn" href="editor.html">Vào Xưởng Soạn</a>
     </div>
   </div>
 </section>
-
 <main>
   <section class="sec" id="thu-vien">
-    <div class="head"><div><h2>Thư Viện</h2><p class="lead">Truyện mới được công khai. Bìa, thông tin và lời giới thiệu cho mọi người xem.</p></div><a class="more" href="editor.html#library">Xem tất cả →</a></div>
+    <div class="head"><div><h2>Thư Viện</h2><p class="lead">Kệ công khai cho mọi người xem (bìa, thông tin, giới thiệu) và kệ riêng tư của bạn.</p></div><a class="more" id="libMore" href="thu-vien.html">Xem tất cả →</a></div>
+    <div class="tabs"><button type="button" id="tPub" class="on">Công khai</button><button type="button" id="tPriv">Riêng tư</button></div>
     <div class="grid" id="books"><div class="empty">Đang tải…</div></div>
   </section>
 
   <section class="sec" id="cho">
-    <div class="head"><div><h2>Chợ Trao Đổi</h2><p class="lead">File EPUB được rao bán bằng 💎, nhận qua điểm danh mỗi ngày.</p></div><a class="more" href="editor.html#market">Vào Chợ →</a></div>
+    <div class="head"><div><h2>Chợ Trao Đổi</h2><p class="lead">File EPUB được rao bán bằng 💎, nhận qua điểm danh mỗi ngày.</p></div><a class="more" href="cho.html">Vào Chợ →</a></div>
     <div class="grid" id="items"><div class="empty">Đang tải…</div></div>
   </section>
 
@@ -206,80 +109,58 @@ footer b{font:800 22px var(--gothic);color:var(--ink)}
       <div><h3>Kệ sách</h3><p>Kệ riêng tư cho bản thảo, kệ công khai để giới thiệu truyện, cửa hàng để đặt giá.</p></div>
       <div><h3>Điểm danh nhận 💎</h3><p>Điểm danh liên tục mỗi ngày, ngày thứ 5, 10, 15… nhận gấp 5.</p></div>
     </div>
-    <div class="cta" style="justify-content:flex-start"><a class="btn pri" href="editor.html">Mở Xưởng Soạn EPUB</a></div>
+    <div style="margin-top:20px"><a class="btn pri" href="editor.html">Mở Xưởng Soạn EPUB</a></div>
   </section>
 </main>
-
 <footer><b>Hoan Nhạc Công Quán</b><br>Dự án phi lợi nhuận. 💎 chỉ dùng để trao đổi trong trang, không quy đổi ra tiền.</footer>
-
+<style>
+.feat{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.feat div{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+.feat h3{margin:0 0 6px;font:700 22px var(--gothic)}
+.feat p{margin:0;color:var(--mute)}
+</style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="site.js"></script>
 <script>
-const $=s=>document.querySelector(s);
-const SB_URL='https://topbjzzygpsfchqpxepm.supabase.co';
-const SB_KEY='sb_publishable_MM_YksiOIgC_Xi8u6sqi7w_AQQ81fZe';
-const sb=window.supabase?supabase.createClient(SB_URL,SB_KEY):null;
-
-/* giao diện sáng/tối */
-const root=document.documentElement;
-try{const t=localStorage.getItem('hn-theme');if(t)root.dataset.theme=t}catch(e){}
-$('#theme').onclick=()=>{const t=root.dataset.theme==='dark'?'light':'dark';root.dataset.theme=t;try{localStorage.setItem('hn-theme',t)}catch(e){}};
-
-/* menu, thông báo, tìm kiếm */
-const drawer=$('#drawer');
-$('#menuBtn').onclick=()=>{drawer.hidden=false};
-drawer.addEventListener('click',e=>{if(e.target===drawer||e.target.closest('a'))drawer.hidden=true});
-$('#bell').onclick=e=>{e.stopPropagation();$('#bellPop').hidden=!$('#bellPop').hidden};
-document.addEventListener('click',e=>{if(!e.target.closest('#bellPop'))$('#bellPop').hidden=true});
-$('#searchBtn').onclick=()=>{const q=$('#q');q.hidden=!q.hidden;if(!q.hidden)q.focus();else{q.value='';filter()}};
-$('#q').oninput=filter;
-function filter(){
-  const k=$('#q').value.trim().toLowerCase();
-  document.querySelectorAll('.card').forEach(c=>{c.hidden=!!k&&!c.dataset.s.includes(k)});
+let tab='pub',pub=[],mine=[],items=[];
+const sb=HN.sb;
+HN.start(load);
+document.getElementById('tPub').onclick=()=>{tab='pub';render()};
+document.getElementById('tPriv').onclick=()=>{tab='priv';render()};
+async function load(){
+  if(!sb){render();return}
+  const [a,b]=await Promise.all([
+    sb.from('public_books').select('id,owner,owner_name,title,author,chapters,description,cover,updated_at').order('updated_at',{ascending:false}).limit(8),
+    sb.from('market').select('id,title,author,cover,price,seller_name,sold').eq('active',true).order('created_at',{ascending:false}).limit(8)
+  ]);
+  pub=a.error?[]:a.data;items=b.error?[]:b.data;
+  mine=[];
+  if(HN.user){const m=await sb.from('books').select('id,title,author,chapters,cover,description,is_public,updated_at').order('updated_at',{ascending:false}).limit(8);mine=m.error?[]:m.data}
+  render();
 }
-
-/* thẻ sách */
-function card(href,cover,title,sub,price,search){
-  const a=document.createElement('a');a.className='card';a.href=href;a.dataset.s=search.toLowerCase();
-  const cv=document.createElement('div');cv.className='cv';
-  if(cover){const im=document.createElement('img');im.src=cover;im.alt='Bìa '+title;im.loading='lazy';cv.appendChild(im)}else cv.textContent=title;
-  const cb=document.createElement('div');cb.className='cb';
-  const b=document.createElement('b');b.textContent=title;const s=document.createElement('small');s.textContent=sub;
-  cb.append(b,s);
-  if(price!=null){const p=document.createElement('span');p.className='price';p.textContent='💎 '+price;cb.appendChild(p)}
-  a.append(cv,cb);return a;
+function empty(box,html,btnLabel,fn){
+  box.innerHTML='<div class="empty"></div>';const e=box.firstChild;e.append(html);
+  if(btnLabel){e.appendChild(document.createElement('br'));const b=document.createElement('button');b.className='btn pri';b.type='button';b.textContent=btnLabel;b.onclick=fn;e.appendChild(b)}
 }
-async function loadBooks(){
-  const box=$('#books');
-  if(!sb){box.innerHTML='<div class="empty">Chưa kết nối được dữ liệu.</div>';return}
-  const q=await sb.from('public_books').select('id,title,author,chapters,cover,owner_name').order('updated_at',{ascending:false}).limit(12);
-  box.textContent='';
-  if(q.error||!q.data.length){box.innerHTML='<div class="empty">Chưa có truyện công khai nào. Hãy là người đầu tiên!</div>';return}
-  q.data.forEach(b=>box.appendChild(card('editor.html#library',b.cover,b.title||'Chưa đặt tên',[b.author,(b.chapters||0)+' chương'].filter(Boolean).join(' · '),null,(b.title||'')+' '+(b.author||''))));
-}
-async function loadItems(){
-  const box=$('#items');
-  if(!sb){box.innerHTML='<div class="empty">Chưa kết nối được dữ liệu.</div>';return}
-  const q=await sb.from('market').select('id,title,author,cover,price,seller_name,sold').eq('active',true).order('created_at',{ascending:false}).limit(8);
-  box.textContent='';
-  if(q.error||!q.data.length){box.innerHTML='<div class="empty">Chợ đang trống.</div>';return}
-  q.data.forEach(m=>box.appendChild(card('editor.html#market',m.cover,m.title||'Chưa đặt tên',[m.author,'bán bởi '+(m.seller_name||'ẩn danh')].filter(Boolean).join(' · '),m.price,(m.title||'')+' '+(m.author||'')+' '+(m.seller_name||''))));
-}
-
-/* tài khoản (dùng chung phiên đăng nhập với Xưởng Soạn) */
-async function loadMe(){
-  if(!sb)return;
-  const s=await sb.auth.getSession(),u=s.data&&s.data.session&&s.data.session.user;
-  if(!u||u.is_anonymous)return;
-  const md=u.user_metadata||{},a=$('#auth');
-  a.title=md.name||md.username||'Tài khoản';a.setAttribute('aria-label',a.title);
-  a.textContent=((md.name||md.username||'?')[0]||'?').toUpperCase();a.href='editor.html#login';
-  const p=await sb.from('profiles').select('avatar,gems').eq('id',u.id).maybeSingle();
-  if(p.data){
-    if(p.data.avatar){a.textContent='';const im=document.createElement('img');im.src=p.data.avatar;im.alt='';a.appendChild(im)}
-    $('#gem').hidden=false;$('#gem').textContent='💎 '+(p.data.gems||0);
+function render(){
+  document.getElementById('tPub').className=tab==='pub'?'on':'';
+  document.getElementById('tPriv').className=tab==='priv'?'on':'';
+  document.getElementById('tPriv').textContent=HN.user&&HN.isGuest()?'Kệ tạm':'Riêng tư';
+  document.getElementById('libMore').href=tab==='priv'?'thu-vien.html#private':'thu-vien.html';
+  const box=document.getElementById('books');box.textContent='';
+  if(tab==='pub'){
+    if(!pub.length)return empty(box,'Chưa có truyện công khai nào. Hãy là người đầu tiên!');
+    pub.forEach(b=>box.appendChild(HN.card({onclick:()=>HN.showBook(b),cover:b.cover,title:b.title||'Chưa đặt tên',sub:[b.author,(b.chapters||0)+' chương'].filter(Boolean).join(' · '),search:(b.title||'')+' '+(b.author||'')})));
+  }else{
+    if(!HN.user)return empty(box,'Đăng nhập để xem kệ riêng tư của bạn.','Đăng nhập / Đăng ký',()=>HN.openAuth());
+    if(!mine.length)return empty(box,'Kệ của bạn còn trống. Vào Xưởng Soạn để viết truyện đầu tiên.','Mở Xưởng Soạn',()=>{location.href='editor.html'});
+    mine.forEach(b=>box.appendChild(HN.card({href:'editor.html#edit='+b.id,cover:b.cover,title:b.title||'Chưa đặt tên',sub:[b.author,(b.chapters||0)+' chương',b.is_public?'đang công khai':'riêng tư'].filter(Boolean).join(' · '),search:(b.title||'')+' '+(b.author||'')})));
   }
+  const ib=document.getElementById('items');ib.textContent='';
+  if(!items.length)empty(ib,'Chợ đang trống.');
+  items.forEach(m=>ib.appendChild(HN.card({href:'cho.html',cover:m.cover,title:m.title||'Chưa đặt tên',sub:[m.author,'bán bởi '+(m.seller_name||'ẩn danh')].filter(Boolean).join(' · '),price:m.price,search:(m.title||'')+' '+(m.author||'')+' '+(m.seller_name||'')})));
+  HN.filter();
 }
-loadBooks();loadItems();loadMe();
 </script>
 </body>
 </html>

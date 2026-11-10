@@ -69,6 +69,7 @@ dialog form{padding:18px;display:grid;gap:10px}
 .bkm{display:flex;gap:10px}
 .cv{width:60px;height:90px;flex-shrink:0;border-radius:4px;background:var(--line) center/cover no-repeat;display:grid;place-items:center;font-size:26px}
 .ds{font-size:14px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+header .lk{padding:6px 11px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);text-decoration:none}header .lk:hover{border-color:var(--acc)}
 #gemChip{padding:4px 10px;border:1px solid var(--line);border-radius:999px;background:var(--bg);font-weight:600}
 .av{display:inline-grid;place-items:center;border-radius:50%;color:#fff;font-weight:700;flex-shrink:0}
 #bAuth:has(.av){padding:3px;border-radius:50%}
@@ -97,7 +98,7 @@ label input,label textarea{background:var(--bg);border:1px solid var(--line);bor
   <button id="bNew">Sách mới</button>
   <button id="bOpen">Mở bản nháp</button>
   <button id="bSave">Lưu bản nháp</button>
-  <button id="bAuth">Đăng nhập</button><span id="gemChip" hidden></span><button id="bMarket">Sàn 💎</button><button id="bShelf">Kệ sách</button><button id="bShelfSave" class="pri">Lưu lên kệ</button>
+  <button id="bAuth">Đăng nhập</button><a class="lk" href="thu-vien.html">Thư Viện</a><a class="lk" href="cho.html">Chợ</a><span id="gemChip" hidden></span><button id="bMarket">Sàn 💎</button><button id="bShelf">Kệ sách</button><button id="bShelfSave" class="pri">Lưu lên kệ</button>
   <button id="bMeta">Thông tin sách</button>
   <button id="bExp" class="pri">Xuất EPUB</button>
 </header>
@@ -928,7 +929,23 @@ if(sb){
   sb.auth.onAuthStateChange((_e,sess)=>{user=(sess&&sess.user)||null;updateAuth();setTimeout(refresh,0);setTimeout(loadProfile,0);if(_e==='PASSWORD_RECOVERY')setTimeout(()=>$('#dNewPw').showModal(),0)});
 }else refresh();
 updateAuth();
-(function(){const h=location.hash;setTimeout(()=>{if(h==='#market')$('#bMarket').click();else if(h==='#library'){tab='pub';$('#bShelf').click()}else if(h==='#login')$('#bAuth').click()},500)})();
+(function(){
+  const h=location.hash;
+  if(h==='#market'){location.replace('cho.html');return}
+  if(h==='#library'){location.replace('thu-vien.html');return}
+  async function openFromId(id){
+    if(!sb)return;
+    await sb.auth.getSession();
+    const q=await sb.from('books').select('id,data').eq('id',id).maybeSingle();
+    if(q.error||!q.data){msg('Không mở được sách này (hãy đăng nhập đúng tài khoản).',5000);return}
+    S=q.data.data;S.shelfId=id;S.cur=0;ensureIds();show();persist();
+    history.replaceState(null,'',location.pathname);msg('Đã mở sách để sửa.');
+  }
+  const m=/^#edit=([0-9a-fA-F-]{36})$/.exec(h);
+  if(m){openFromId(m[1]);return}
+  if(h==='#login')setTimeout(()=>$('#bAuth').click(),500);
+  if(h==='#admin')setTimeout(()=>{$('#bAuth').click();setTimeout(()=>{const b=$('#acAdmin');if(b)b.click()},500)},700);
+})();
 document.querySelectorAll('dialog').forEach(d=>{const x=document.createElement('button');x.type='button';x.className='xbtn';x.textContent='✕';x.setAttribute('aria-label','Đóng');x.onclick=()=>d.close();d.appendChild(x)});
 show();
 </script>
